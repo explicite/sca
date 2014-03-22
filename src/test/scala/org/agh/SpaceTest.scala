@@ -10,11 +10,11 @@ class SpaceTest extends FunSuite with Matchers {
   val width: Int = 10
   val height: Int = 20
   val neighbours: Seq[(Int, Int)] = List((-1, -1), (10, 20), (0, 0))
-  val testSpace = scala.collection.mutable.Seq.fill(3 * 3)(0.0)
+  val testSpace = scala.collection.mutable.Seq.fill(3 * 3)(0.0f)
   testSpace(4) = 1
 
   test("Periodic boundaries test") {
-    val space = new VonNeumannSpace(width, height) with Periodic
+    val space = new Space(width, height) with VonNeumann with Periodic
     val s: Seq[(Int, Int)] = space mutate neighbours
 
     s(0) should equal(9, 19)
@@ -23,49 +23,29 @@ class SpaceTest extends FunSuite with Matchers {
   }
 
   test("Absorbs boundaries test") {
-    val space = new VonNeumannSpace(width, height) with Absorbs
+    val space = new Space(width, height) with VonNeumann with Absorbs
     val s: Seq[(Int, Int)] = space mutate neighbours
 
     s.length should equal(1)
   }
 
   test("Moore with absorbs") {
-    val space = new MooreSpace(3, 3) with Absorbs
-    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0)
+    val space = new Space(3, 3) with Moore with Absorbs
+    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f)
   }
 
   test("Moore with periodic") {
-    val space = new MooreSpace(3, 3) with Periodic
-    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0)
+    val space = new Space(3, 3) with Moore with Periodic
+    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f)
   }
 
   test("VonNeumann with absorbs") {
-    val space = new VonNeumannSpace(3, 3) with Absorbs
-    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+    val space = new Space(3, 3) with VonNeumann with Absorbs
+    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f)
   }
 
   test("VonNeumann with periodic") {
-    val space = new VonNeumannSpace(3, 3) with Periodic
-    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+    val space = new Space(3, 3) with VonNeumann with Periodic
+    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f)
   }
-
-  /*test("Pentagonal with absorbs") {
-    val space = new PentagonalSpace(3, 3) with Absorbs
-    space.iterate(testSpace.toSeq) count(x => x == 1.0) should equal(6)
-  }
-
-  test("Pentagonal with periodic") {
-    val space = new PentagonalSpace(3, 3) with Periodic
-    space.iterate(testSpace.toSeq) count(x => x == 1.0) should equal(6)
-  }
-
-  test("Hexagonal with absorbs") {
-    val space = new HexagonalSpace(3, 3) with Absorbs
-    space.iterate(testSpace.toSeq) count(x => x == 1.0) should equal(7)
-  }
-
-  test("Hexagonal with periodic") {
-    val space = new HexagonalSpace(3, 3) with Periodic
-    space.iterate(testSpace.toSeq) count(x => x == 1.0) should equal(7)
-  }*/
 }

@@ -5,7 +5,7 @@ package org.agh
  *         Date: 3/17/14
  */
 case class Cell(x: Int, y: Int) {
-  var value: Double = 0
+  var value: Float = 0
 }
 
 
