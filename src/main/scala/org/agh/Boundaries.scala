@@ -23,16 +23,6 @@ trait Periodic extends Boundaries {
 
 trait Absorbs extends Boundaries {
   override def mutate(neighbours: Seq[(Int, Int)]): Seq[(Int, Int)] = {
-    var tmp: Seq[(Int, Int)] = Nil
-
-    for (position <- neighbours) {
-      val x = position._1
-      val y = position._2
-
-      if (!(x < 0 || y < 0 || x >= width || y >= height))
-        tmp ++= position :: Nil
-    }
-
-    tmp
+    neighbours.filter(p => p._1 >= 0 && p._2 >= 0 && p._1 < width && p._2 < height)
   }
 }

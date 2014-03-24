@@ -4,23 +4,29 @@ import java.awt.{Dimension, Color, Graphics}
 import javax.swing.JComponent
 import scala.swing.Component
 
-
 /**
  * @author Jan Paw
  *         date: 3/18/14
  */
 class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
   var space: Seq[Float] = Nil
+
   override lazy val peer = new JComponent {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
 
     override def paint(g: Graphics) = {
-      for (x <- 0 until width) {
-        for (y <- 0 until height) {
-          val c = Color.getHSBColor(space(y + x * width), 1f, 1f)
-          g.setColor(c)
+      //Optimization
+      var x: Int = 0
+      var y: Int = 0
+
+      while (x < width) {
+        while (y < height) {
+          g.setColor(Color.getHSBColor(space(width * y + x), 1f, 1f))
           g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
+          y += 1
         }
+        x += 1
+        y = 0
       }
     }
 
