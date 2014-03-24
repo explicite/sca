@@ -4,17 +4,16 @@ import javax.swing.UIManager
 import scala.swing._
 import org.agh.view.SpacePanel
 import scala.swing.event.ButtonClicked
-import java.awt.Color
 
 /**
  * @author Jan Paw 
  *         Date: 3/18/14
  */
 object App extends SwingApplication {
-  val width = 100
-  val height = 100
-  val cellSize = 2
-  val space = new Space(width, height) with Moore with Periodic
+  val width = 20
+  val height = 20
+  val cellSize = 5
+  val space = new Space(width, height) with NearestMoore with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")
@@ -25,7 +24,8 @@ object App extends SwingApplication {
 
   canvas.paint({
     val cells = scala.collection.mutable.Seq.fill(width * height)(0f)
-    cells((height / 5)*height + (width / 2)) = 0.1f
+    cells((height / 5) * height + (width / 2)) = 0.1f
+    cells((width / 3) * width + (height / 2)) = 0.3f
     cells.seq
   })
 

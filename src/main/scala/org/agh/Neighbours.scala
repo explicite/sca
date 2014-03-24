@@ -15,9 +15,15 @@ abstract class Neighbours extends Boundaries {
   protected def randomCase(cases: Int): Int = random.nextInt(cases) + 1
 }
 
-trait Moore extends Neighbours {
+trait NearestMoore extends Neighbours {
   protected override def neighbours(x: Int, y: Int): Seq[(Int, Int)] = {
     mutate(Seq((x, y - 1), (x + 1, y), (x - 1, y), (x, y + 1)))
+  }
+}
+
+trait FurtherMoore extends Neighbours {
+  override protected def neighbours(x: Int, y: Int): Seq[(Int, Int)] = {
+    mutate(Seq((x - 1, y - 1), (x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1)))
   }
 }
 
@@ -36,7 +42,6 @@ trait Pentagonal extends Neighbours {
       case 4 => Seq((x, y - 1), (x + 1, y - 1), (x + 1, y), (x + 1, y + 1), (x, y + 1))
     })
   }
-
 }
 
 trait Hexagonal extends Neighbours {

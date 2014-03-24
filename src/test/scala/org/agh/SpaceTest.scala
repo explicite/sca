@@ -29,14 +29,24 @@ class SpaceTest extends FunSuite with Matchers with Speed {
     s.length should equal(1)
   }
 
-  test("Moore with absorbs") {
-    val space = new Space(3, 3) with Moore with Absorbs
+  test("Neares Moore with absorbs") {
+    val space = new Space(3, 3) with NearestMoore with Absorbs
     space.iterate(testSpace.toSeq) should contain theSameElementsAs List(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f)
   }
 
-  test("Moore with periodic") {
-    val space = new Space(3, 3) with Moore with Periodic
+  test("Nearest Moore with periodic") {
+    val space = new Space(3, 3) with NearestMoore with Periodic
     space.iterate(testSpace.toSeq) should contain theSameElementsAs List(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f)
+  }
+
+  test("Further Moore with absorbs") {
+    val space = new Space(3, 3) with FurtherMoore with Absorbs
+    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f)
+  }
+
+  test("Further Moore with periodic") {
+    val space = new Space(3, 3) with FurtherMoore with Periodic
+    space.iterate(testSpace.toSeq) should contain theSameElementsAs List(1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f)
   }
 
   test("VonNeumann with absorbs") {
