@@ -1,5 +1,7 @@
 package org.agh
 
+import java.awt.Color
+
 
 /**
  * @author Jan Paw
@@ -7,38 +9,30 @@ package org.agh
  */
 abstract case class Space(width: Int, height: Int) extends Neighbours {
 
-  def iterate(space: Seq[Float]): Seq[Float] = {
-    var tmp: Seq[Float] = Nil
-    def cellValue(x: Int, y: Int): Float = {
-      space(width * y + x) match {
-        case 0 =>
-          val values = neighbours(x, y).map(c => space(width * c._2 + c._1)).filter(x => x > 0)
-          val valuesWithCount = values map (v => (v, values.count(_ == x)))
-          val sorted = valuesWithCount.sortWith(_._2 > _._2)
-          sorted match {
-            case h :: tail => h._1
-            case _ => space(width * y + x)
+  def iterate(space: Seq[Cell]): Seq[Cell] = {
+    implicit def coordinatesToCell(t: (Int, Int)): Cell = space(t._1 + width * t._2)
+
+    def cellValue(x: Int, y: Int): Cell = {
+      (x, y).v match {
+        case Color.WHITE => {
+          neighbours(x, y) match {
+            case Nil => (x, y)
+            case n: Seq[(Int, Int)] => {
+              val values: Seq[(Int, Int)] = n filter (x => x.v != Color.WHITE && x.v != Color.BLACK)
+              val valuesWithCount = values map (v => (v, values.count(_ == x)))
+              val sorted = valuesWithCount.sortWith(_._2 > _._2)
+              sorted match {
+                case h :: tail => h._1
+                case _ => (x, y)
+              }
+            }
           }
-        case _ => space(width * y + x)
+        }
+        case _ => (x, y)
       }
     }
 
-    //Optimization
-    var x: Int = 0
-    var y: Int = 0
-
-    while (y < width) {
-
-      while (x < height) {
-        tmp ++= cellValue(x, y) :: Nil
-        x += 1
-
-      }
-
-      y += 1
-      x = 0
-    }
-
-    tmp
+    space.map(c => cellValue(c.x, c.y))
   }
+
 }

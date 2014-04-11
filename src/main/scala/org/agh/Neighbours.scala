@@ -27,7 +27,18 @@ trait FurtherMoore extends Neighbours {
   }
 }
 
-trait VonNeumann extends Neighbours {
+trait RandomMoore extends Neighbours {
+  override protected def neighbours(x: Int, y: Int): Seq[(Int, Int)] = {
+    import Neighbours._
+
+    random.nextFloat() match {
+      case f: Float if f <= probability => mutate(Seq((x, y - 1), (x + 1, y), (x - 1, y), (x, y + 1)))
+      case _ => Nil
+    }
+  }
+}
+
+trait Moore extends Neighbours {
   protected override def neighbours(x: Int, y: Int): Seq[(Int, Int)] = {
     mutate(Seq((x - 1, y - 1), (x, y - 1), (x + 1, y - 1), (x + 1, y), (x - 1, y), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)))
   }
@@ -55,4 +66,5 @@ trait Hexagonal extends Neighbours {
 
 object Neighbours {
   val random = new Random()
+  val probability = 0.7f
 }

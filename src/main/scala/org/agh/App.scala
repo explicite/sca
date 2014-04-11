@@ -1,19 +1,21 @@
 package org.agh
 
-import javax.swing.UIManager
 import scala.swing._
+import java.awt.event.MouseEvent.{BUTTON1 => LeftButton}
+import javax.swing.UIManager
 import org.agh.view.SpacePanel
-import scala.swing.event.ButtonClicked
+import scala.swing.event.Key.Modifier.Control
+import scala.swing.event.{MouseClicked, ButtonClicked}
 
 /**
  * @author Jan Paw 
  *         Date: 3/18/14
  */
 object App extends SwingApplication {
-  val width = 20
-  val height = 20
-  val cellSize = 5
-  val space = new Space(width, height) with NearestMoore with Periodic
+  val width = 60
+  val height = 60
+  val cellSize = 10
+  val space = new Space(width, height) with RandomMoore with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")
@@ -22,23 +24,26 @@ object App extends SwingApplication {
     contents ++= canvas :: iterate :: Nil
   }
 
-  canvas.paint({
-    val cells = scala.collection.mutable.Seq.fill(width * height)(0f)
-    cells((height / 5) * height + (width / 2)) = 0.1f
-    cells((width / 3) * width + (height / 2)) = 0.3f
-    cells.seq
-  })
+  canvas.generate()
 
   def top = new MainFrame {
     title = "SCA"
     contents = panel
+    val point: Point = new Point
 
     listenTo(iterate)
+    listenTo(canvas.mouse.clicks)
     reactions += {
       case ButtonClicked(`iterate`) =>
         canvas.paint(space.iterate(canvas.space))
+      case e: MouseClicked => e.peer.getButton match {
+        case LeftButton => e.modifiers match {
+          case Control => println(s"left clicked at $e")
+          case _ => Some
+        }
+        case _ => Some
+      }
     }
-
   }
 
   override def startup(args: Array[String]) {

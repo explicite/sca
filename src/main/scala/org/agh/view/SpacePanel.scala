@@ -3,13 +3,15 @@ package org.agh.view
 import java.awt.{Dimension, Color, Graphics}
 import javax.swing.JComponent
 import scala.swing.Component
+import org.agh.Cell
+import scala.util.Random
 
 /**
  * @author Jan Paw
  *         date: 3/18/14
  */
 class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
-  var space: Seq[Float] = Nil
+  var space: Seq[Cell] = Nil
 
   override lazy val peer = new JComponent {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
@@ -21,7 +23,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
 
       while (x < width) {
         while (y < height) {
-          g.setColor(Color.getHSBColor(space(width * y + x), 1f, 1f))
+          g.setColor(space(width * y + x))
           g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
           y += 1
         }
@@ -39,8 +41,22 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     }
   }
 
-  def paint(s: Seq[Float]) = {
+  def paint(s: Seq[Cell]) = {
     space = s
     peer.repaint()
+  }
+
+  def generate() = {
+    space = Nil
+    val rand = new Random()
+    for (x <- 0 until width) {
+      for (y <- 0 until height) {
+        val color: Color = rand.nextFloat() match {
+          case x: Float if x > 0.9f => if (x > 0.99f) Color.BLACK else Color.getHSBColor(rand.nextFloat(), 1f, 1f)
+          case _ => Color.WHITE
+        }
+        space ++= Cell(x, y, color) :: Nil
+      }
+    }
   }
 }
