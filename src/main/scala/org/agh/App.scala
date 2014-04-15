@@ -12,10 +12,10 @@ import scala.swing.event.{MouseClicked, ButtonClicked}
  *         Date: 3/18/14
  */
 object App extends SwingApplication {
-  val width = 60
-  val height = 60
+  val width = 50
+  val height = 50
   val cellSize = 10
-  val space = new Space(width, height) with RandomMoore with Periodic
+  val space = new Space(width, height) with Pentagonal with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")

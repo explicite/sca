@@ -17,19 +17,10 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
 
     override def paint(g: Graphics) = {
-      //Optimization
-      var x: Int = 0
-      var y: Int = 0
-
-      while (x < width) {
-        while (y < height) {
-          g.setColor(space(width * y + x))
-          g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
-          y += 1
-        }
-        x += 1
-        y = 0
-      }
+      space foreach (c => {
+        g.setColor(c.v)
+        g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
+      })
     }
 
     override def update(g: Graphics) = {
@@ -55,6 +46,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
           case x: Float if x > 0.9f => if (x > 0.99f) Color.BLACK else Color.getHSBColor(rand.nextFloat(), 1f, 1f)
           case _ => Color.WHITE
         }
+
         space ++= Cell(x, y, color) :: Nil
       }
     }
