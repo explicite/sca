@@ -27,8 +27,31 @@ abstract class Neighbours extends Boundaries {
   }
 
   protected def chain(cells: Seq[Cell]): Option[Color] = {
-    //TODO
-    ???
+
+    def evaluate(s: Int): Option[Color] = {
+      def chained(idx: Int): Boolean = {
+        def bound(idx: Int) = cells(((idx % cells.length) + cells.length) % cells.length).v.getRGB
+
+        if (bound(idx - 1) == bound(idx) && bound(idx - 1) == bound(idx + 1) && bound(idx) == bound(idx + 1))
+          true
+        else
+          false
+      }
+
+      if (chained(s))
+        Some(cells(s).v)
+      else if (s > 0)
+        evaluate(s - 1)
+      else
+        None
+    }
+
+    cells.length match {
+      case 3 => evaluate(2)
+      case 4 => evaluate(3)
+      case _ => None
+    }
+
   }
 }
 
@@ -40,13 +63,13 @@ trait VonNeumann extends Neighbours {
 
 trait NearestMoore extends Neighbours {
   protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    first(mutate(Seq((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y))))
+    chain(mutate(Seq((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y))))
   }
 }
 
 trait FurtherMoore extends Neighbours {
   override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    first(mutate(Seq((x - 1, y - 1), (x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1))))
+    chain(mutate(Seq((x - 1, y - 1), (x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1))))
   }
 }
 

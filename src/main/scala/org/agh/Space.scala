@@ -12,9 +12,9 @@ abstract case class Space(width: Int, height: Int) extends Neighbours {
   val probability = 0.7d
 
   def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
-    space map (c => c.v match {
+    space.par.map (c => c.v match {
       case WHITE => c.evaluate(neighbours)
       case _ => c
-    })
+    }).seq
   }
 }

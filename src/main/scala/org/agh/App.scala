@@ -14,8 +14,8 @@ import scala.swing.event.{MouseClicked, ButtonClicked}
 object App extends SwingApplication {
   val width = 50
   val height = 50
-  val cellSize = 10
-  val space = new Space(width, height) with Pentagonal with Periodic
+  val cellSize = 5
+  val space = new Space(width, height) with VonNeumann with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")
@@ -24,7 +24,7 @@ object App extends SwingApplication {
     contents ++= canvas :: iterate :: Nil
   }
 
-  canvas.generate()
+  canvas generate 0.9f
 
   def top = new MainFrame {
     title = "SCA"

@@ -11,13 +11,14 @@ class SpaceTest extends FunSuite with Matchers with Speed {
   val width: Int = 10
   val height: Int = 20
 
-  val testSpace = Cell(0, 0, WHITE) :: Cell(0, 1, WHITE) :: Cell(0, 2, WHITE) ::
-    Cell(1, 0, RED) :: Cell(1, 1, WHITE) :: Cell(1, 2, WHITE) ::
-    Cell(2, 0, WHITE) :: Cell(2, 1, WHITE) :: Cell(2, 2, WHITE) :: Nil
+  val testSpace = Seq(
+    Cell(0, 0, WHITE) , Cell(0, 1, WHITE) , Cell(0, 2, WHITE) ,
+    Cell(1, 0, RED) , Cell(1, 1, WHITE) , Cell(1, 2, WHITE) ,
+    Cell(2, 0, WHITE) , Cell(2, 1, WHITE) , Cell(2, 2, WHITE))
 
   test("Von Neumann with absorbs") {
     val space = new Space(3, 3) with VonNeumann with Absorbs
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
+    space iterate testSpace map(_.v) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
       RED, RED, WHITE,
       RED, WHITE, WHITE)
@@ -25,7 +26,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
 
   test("Von Neumann with periodic") {
     val space = new Space(3, 3) with VonNeumann with Periodic
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
+    space iterate testSpace map(_.v) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
       RED, RED, RED,
       RED, WHITE, WHITE)
@@ -33,39 +34,107 @@ class SpaceTest extends FunSuite with Matchers with Speed {
 
   test("Neares Moore with absorbs") {
     val space = new Space(3, 3) with NearestMoore with Absorbs
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
-      RED, WHITE, WHITE,
-      RED, RED, WHITE,
-      RED, WHITE, WHITE)
-  }
 
-  test("Nearest Moore with periodic") {
-    val space = new Space(3, 3) with NearestMoore with Periodic
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
-      RED, WHITE, WHITE,
+    val s1 = Seq(
+      Cell(0, 0, WHITE), Cell(0, 1, RED), Cell(0, 2, WHITE),
+      Cell(1, 0, WHITE), Cell(1, 1, WHITE), Cell(1, 2, RED),
+      Cell(2, 0, WHITE), Cell(2, 1, RED), Cell(2, 2, WHITE)
+    )
+
+    val s2 = Seq(
+      Cell(0, 0, WHITE), Cell(0, 1, RED), Cell(0, 2, WHITE),
+      Cell(1, 0, RED), Cell(1, 1, WHITE), Cell(1, 2, RED),
+      Cell(2, 0, WHITE), Cell(2, 1, WHITE), Cell(2, 2, WHITE)
+    )
+
+    val s3 = Seq(
+      Cell(0, 0, WHITE), Cell(0, 1, RED), Cell(0, 2, WHITE),
+      Cell(1, 0, RED), Cell(1, 1, WHITE), Cell(1, 2, WHITE),
+      Cell(2, 0, WHITE), Cell(2, 1, RED), Cell(2, 2, WHITE)
+    )
+
+    val s4 = Seq(
+      Cell(0, 0, WHITE), Cell(0, 1, WHITE), Cell(0, 2, WHITE),
+      Cell(1, 0, RED), Cell(1, 1, WHITE), Cell(1, 2, RED),
+      Cell(2, 0, WHITE), Cell(2, 1, RED), Cell(2, 2, WHITE)
+    )
+
+    space iterate s1  map(_.v) should contain theSameElementsAs Seq(
+      WHITE, RED, WHITE,
+      WHITE, RED, RED,
+      WHITE, RED, WHITE
+    )
+
+    space iterate s2 map(_.v) should contain theSameElementsAs Seq(
+      WHITE, RED, WHITE,
       RED, RED, RED,
-      RED, WHITE, WHITE)
+      WHITE, WHITE, WHITE
+    )
+
+    space iterate s3 map(_.v) should contain theSameElementsAs Seq(
+      WHITE, RED, WHITE,
+      RED, RED, WHITE,
+      WHITE, RED, WHITE
+    )
+
+    space iterate s4 map(_.v) should contain theSameElementsAs Seq(
+      WHITE, WHITE, WHITE,
+      RED, RED, RED,
+      WHITE, RED, WHITE
+    )
   }
 
   test("Further Moore with absorbs") {
     val space = new Space(3, 3) with FurtherMoore with Absorbs
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
-      WHITE, RED, WHITE,
-      RED, WHITE, WHITE,
-      WHITE, RED, WHITE)
-  }
 
-  test("Further Moore with periodic") {
-    val space = new Space(3, 3) with FurtherMoore with Periodic
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
-      WHITE, RED, RED,
+    val s1 = Seq(
+      Cell(0, 0, RED), Cell(0, 1, WHITE), Cell(0, 2, RED),
+      Cell(1, 0, WHITE), Cell(1, 1, WHITE), Cell(1, 2, WHITE),
+      Cell(2, 0, RED), Cell(2, 1, WHITE), Cell(2, 2, WHITE)
+    )
+
+    val s2 = Seq(
+      Cell(0, 0, RED), Cell(0, 1, WHITE), Cell(0, 2, RED),
+      Cell(1, 0, WHITE), Cell(1, 1, WHITE), Cell(1, 2, WHITE),
+      Cell(2, 0, WHITE), Cell(2, 1, WHITE), Cell(2, 2, RED)
+    )
+
+    val s3 = Seq(
+      Cell(0, 0, WHITE), Cell(0, 1, WHITE), Cell(0, 2, RED),
+      Cell(1, 0, WHITE), Cell(1, 1, WHITE), Cell(1, 2, WHITE),
+      Cell(2, 0, RED), Cell(2, 1, WHITE), Cell(2, 2, RED)
+    )
+
+    val s4 = Seq(
+      Cell(0, 0, RED), Cell(0, 1, WHITE), Cell(0, 2, WHITE),
+      Cell(1, 0, WHITE), Cell(1, 1, WHITE), Cell(1, 2, WHITE),
+      Cell(2, 0, RED), Cell(2, 1, WHITE), Cell(2, 2, RED)
+    )
+
+    space iterate s1  map(_.v) should contain theSameElementsAs Seq(
+      RED, WHITE, RED,
+      WHITE, RED, WHITE,
+      RED, WHITE, WHITE)
+
+    space iterate s2  map(_.v) should contain theSameElementsAs Seq(
+      RED, WHITE, RED,
+      WHITE, RED, WHITE,
+      WHITE, WHITE, RED)
+
+    space iterate s3  map(_.v) should contain theSameElementsAs Seq(
+      WHITE, WHITE, RED,
+      WHITE, RED, WHITE,
+      RED, WHITE, RED)
+
+    space iterate s4  map(_.v) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
-      WHITE, RED, RED)
+      WHITE, RED, WHITE,
+      RED, WHITE, RED)
   }
 
   test("Moore with absorbs") {
     val space = new Space(3, 3) with Moore with Absorbs
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
+    space iterate testSpace.toSeq map(_.v) should contain theSameElementsAs Seq(
       RED, RED, WHITE,
       RED, RED, WHITE,
       RED, RED, WHITE)
@@ -73,7 +142,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
 
   test("Moore with periodic") {
     val space = new Space(3, 3) with Moore with Periodic
-    space.iterate(testSpace.toSeq).map(c => c.v) should contain theSameElementsAs List(
+    space iterate testSpace map(_.v) should contain theSameElementsAs Seq(
       RED, RED, RED,
       RED, RED, RED,
       RED, RED, RED)
@@ -116,10 +185,10 @@ class SpaceTest extends FunSuite with Matchers with Speed {
 trait Speed {
   def time[T](str: String)(thunk: => T): T = {
     print(str + "... ")
-    val t1 = System.currentTimeMillis
+    val start = System.currentTimeMillis
     val x = thunk
-    val t2 = System.currentTimeMillis
-    println((t2 - t1) + " msecs")
+    val stop = System.currentTimeMillis
+    println((stop - start) + "[msec]")
     x
   }
 }
