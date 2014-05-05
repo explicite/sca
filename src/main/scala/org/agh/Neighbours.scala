@@ -2,6 +2,7 @@ package org.agh
 
 import scala.util.Random
 import java.awt.Color
+import scala.annotation.switch
 
 /**
  * @author Jan Paw
@@ -46,7 +47,7 @@ abstract class Neighbours extends Boundaries {
         None
     }
 
-    cells.length match {
+    (cells.length: @switch) match {
       case 3 => evaluate(2)
       case 4 => evaluate(3)
       case _ => None

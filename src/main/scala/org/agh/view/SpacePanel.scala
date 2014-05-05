@@ -1,11 +1,16 @@
 package org.agh.view
 
-import java.awt.{Dimension, Color, Graphics}
+import java.awt.{Dimension, Graphics}
 import javax.swing.JComponent
 import scala.swing.Component
 import org.agh.Cell
 import java.awt.Color._
 import scala.util.Random
+import scala.annotation.switch
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.collection.breakOut
 
 /**
  * @author Jan Paw
@@ -39,19 +44,20 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
   }
 
   def generate(p: Float): Unit = {
-    space = Nil
     val rand = new Random()
 
-    import scalaxy.loops._
-    for (x <- (0 until width).optimized) {
-      for (y <- (0 until height).optimized) {
-        val color: Color = rand.nextFloat() match {
+    val futures = for {
+      x <- (0 until width).par
+      y <- (0 until height).par
+    } yield {
+      future {
+        Cell(x, y, (rand.nextFloat(): @switch) match {
           case x: Float if x > p => if (x > 0.99f) BLACK else getHSBColor(rand.nextFloat(), 1f, 1f)
           case _ => WHITE
-        }
-
-        space ++= Cell(x, y, color) :: Nil
+        })
       }
     }
+
+    space = futures.map(c => Await.result(c, 100 milli))(breakOut)
   }
 }

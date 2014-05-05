@@ -12,9 +12,9 @@ import scala.swing.event.{MouseClicked, ButtonClicked}
  *         Date: 3/18/14
  */
 object App extends SwingApplication {
-  val width = 50
-  val height = 50
-  val cellSize = 5
+  val width = 800
+  val height = 600
+  val cellSize = 1
   val space = new Space(width, height) with VonNeumann with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
@@ -24,7 +24,7 @@ object App extends SwingApplication {
     contents ++= canvas :: iterate :: Nil
   }
 
-  canvas generate 0.9f
+  canvas generate 0.97f
 
   def top = new MainFrame {
     title = "SCA"
