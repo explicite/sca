@@ -19,7 +19,7 @@ abstract class Neighbours extends Boundaries {
   protected def randomCase(cases: Int): Int = random.nextInt(cases) + 1
 
   protected def first(cells: Seq[Cell]): Option[Color] = {
-    cells match {
+    (cells: @switch) match {
       case head :: tail =>
         val cellsWithCount = cells map (c => (c, cells.count(_.v == c.v)))
         Some(cellsWithCount.sortWith(_._2 < _._2).map(ci => ci._1).head.v)
@@ -58,19 +58,31 @@ abstract class Neighbours extends Boundaries {
 
 trait VonNeumann extends Neighbours {
   protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    first(mutate(Seq((x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y))))
+    first {
+      mutate {
+        (x, y - 1) ::(x, y + 1) ::(x - 1, y) ::(x + 1, y) :: Nil
+      }
+    }
   }
 }
 
 trait NearestMoore extends Neighbours {
   protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    chain(mutate(Seq((x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y))))
+    chain {
+      mutate {
+        (x, y - 1) ::(x + 1, y) ::(x, y + 1) ::(x - 1, y) :: Nil
+      }
+    }
   }
 }
 
 trait FurtherMoore extends Neighbours {
   override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    chain(mutate(Seq((x - 1, y - 1), (x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1))))
+    chain {
+      mutate {
+        (x - 1, y - 1) ::(x + 1, y - 1) ::(x + 1, y + 1) ::(x - 1, y + 1) :: Nil
+      }
+    }
   }
 }
 
@@ -78,8 +90,13 @@ trait RandomMoore extends Neighbours {
   override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     import Neighbours._
 
-    random.nextFloat() match {
-      case f: Float if f <= probability => first(mutate(Seq((x, y - 1), (x + 1, y), (x - 1, y), (x, y + 1))))
+    (random.nextFloat(): @switch) match {
+      case f: Float if f <= probability =>
+        first {
+          mutate {
+            (x, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x, y + 1) :: Nil
+          }
+        }
       case _ => None
     }
   }
@@ -87,27 +104,39 @@ trait RandomMoore extends Neighbours {
 
 trait Moore extends Neighbours {
   protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    first(mutate(Seq((x - 1, y - 1), (x, y - 1), (x + 1, y - 1), (x + 1, y), (x - 1, y), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1))))
+    first {
+      mutate {
+        (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
+      }
+    }
   }
 }
 
 trait Pentagonal extends Neighbours {
   override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    first(mutate(randomCase(4) match {
-      case 1 => Seq((x - 1, y - 1), (x, y - 1), (x + 1, y - 1), (x + 1, y), (x - 1, y))
-      case 2 => Seq((x + 1, y), (x - 1, y), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1))
-      case 3 => Seq((x - 1, y - 1), (x, y - 1), (x - 1, y), (x + 1, y + 1), (x, y + 1))
-      case 4 => Seq((x, y - 1), (x + 1, y - 1), (x + 1, y), (x + 1, y + 1), (x, y + 1))
-    }))
+    first {
+      mutate {
+        (randomCase(4): @switch) match {
+          case 1 => (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) :: Nil
+          case 2 => (x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
+          case 3 => (x - 1, y - 1) ::(x, y - 1) ::(x - 1, y) ::(x + 1, y + 1) ::(x, y + 1) :: Nil
+          case 4 => (x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x + 1, y + 1) ::(x, y + 1) :: Nil
+        }
+      }
+    }
   }
 }
 
 trait Hexagonal extends Neighbours {
   override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    first(mutate(randomCase(2) match {
-      case 1 => Seq((x - 1, y - 1), (x, y - 1), (x - 1, y), (x + 1, y), (x + 1, y + 1), (x, y + 1))
-      case 2 => Seq((x, y - 1), (x + 1, y - 1), (x + 1, y), (x - 1, y), (x - 1, y + 1), (x, y + 1))
-    }))
+    first {
+      mutate {
+        (randomCase(2): @switch) match {
+          case 1 => (x - 1, y - 1) ::(x, y - 1) ::(x - 1, y) ::(x + 1, y) ::(x + 1, y + 1) ::(x, y + 1) :: Nil
+          case 2 => (x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) :: Nil
+        }
+      }
+    }
   }
 }
 

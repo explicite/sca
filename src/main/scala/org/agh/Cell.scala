@@ -14,7 +14,7 @@ case class Cell(x: Int, y: Int, v: Color) {
     val value = f(x, y)
 
     value match {
-      case Some(v) => Cell(x, y, v)
+      case Some(color) => Cell(x, y, color)
       case None => this
     }
   }

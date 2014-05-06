@@ -23,10 +23,13 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
 
     override def paint(g: Graphics) = {
-      space foreach (c => {
+      var i = 0
+      while (i < space.length) {
+        val c = space(i)
         g.setColor(c.v)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
-      })
+        i += 1;
+      }
     }
 
     override def update(g: Graphics) = {
@@ -43,21 +46,21 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     repaint()
   }
 
-  def generate(p: Float): Unit = {
+  def generate(p: Float, n: Float): Unit = {
     val rand = new Random()
-
     val futures = for {
-      x <- (0 until width).par
-      y <- (0 until height).par
+      x <- 0 until width
+      y <- 0 until height
     } yield {
       future {
         Cell(x, y, (rand.nextFloat(): @switch) match {
-          case x: Float if x > p => if (x > 0.99f) BLACK else getHSBColor(rand.nextFloat(), 1f, 1f)
+          case x: Float if x > p => if (x > n) BLACK else getHSBColor(rand.nextFloat(), 1f, 1f)
           case _ => WHITE
         })
       }
     }
 
     space = futures.map(c => Await.result(c, 100 milli))(breakOut)
+
   }
 }
