@@ -17,7 +17,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
     Cell(2, 0, WHITE) , Cell(2, 1, WHITE) , Cell(2, 2, WHITE))
 
   test("Von Neumann with absorbs") {
-    val space = new Space(3, 3) with VonNeumann with Absorbs
+    val space = new CASpace(3, 3) with VonNeumann with Absorbs
     space iterate testSpace map(_.v) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
       RED, RED, WHITE,
@@ -25,7 +25,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
   }
 
   test("Von Neumann with periodic") {
-    val space = new Space(3, 3) with VonNeumann with Periodic
+    val space = new CASpace(3, 3) with VonNeumann with Periodic
     space iterate testSpace map(_.v) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
       RED, RED, RED,
@@ -33,7 +33,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
   }
 
   test("Neares Moore with absorbs") {
-    val space = new Space(3, 3) with NearestMoore with Absorbs
+    val space = new CASpace(3, 3) with NearestMoore with Absorbs
 
     val s1 = Seq(
       Cell(0, 0, WHITE), Cell(0, 1, RED), Cell(0, 2, WHITE),
@@ -85,7 +85,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
   }
 
   test("Further Moore with absorbs") {
-    val space = new Space(3, 3) with FurtherMoore with Absorbs
+    val space = new CASpace(3, 3) with FurtherMoore with Absorbs
 
     val s1 = Seq(
       Cell(0, 0, RED), Cell(0, 1, WHITE), Cell(0, 2, RED),
@@ -133,7 +133,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
   }
 
   test("Moore with absorbs") {
-    val space = new Space(3, 3) with Moore with Absorbs
+    val space = new CASpace(3, 3) with Moore with Absorbs
     space iterate testSpace.toSeq map(_.v) should contain theSameElementsAs Seq(
       RED, RED, WHITE,
       RED, RED, WHITE,
@@ -141,7 +141,7 @@ class SpaceTest extends FunSuite with Matchers with Speed {
   }
 
   test("Moore with periodic") {
-    val space = new Space(3, 3) with Moore with Periodic
+    val space = new CASpace(3, 3) with Moore with Periodic
     space iterate testSpace map(_.v) should contain theSameElementsAs Seq(
       RED, RED, RED,
       RED, RED, RED,

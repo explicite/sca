@@ -15,7 +15,7 @@ object App extends SwingApplication {
   val width = 800
   val height = 600
   val cellSize = 1
-  val space = new Space(width, height) with RandomMoore with Periodic
+  val space = new CASpace(width, height) with RandomMoore with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")
