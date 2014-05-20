@@ -3,7 +3,7 @@ package org.agh.view
 import java.awt.{Dimension, Graphics}
 import javax.swing.JComponent
 import scala.swing.Component
-import org.agh.Cell
+import org.agh.{Space, Cell}
 import java.awt.Color._
 import scala.util.Random
 import scala.annotation.switch
@@ -28,7 +28,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
         val c = space(i)
         g.setColor(c.v)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
-        i += 1;
+        i += 1
       }
     }
 
@@ -46,7 +46,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     repaint()
   }
 
-  def generate(p: Float, n: Float): Unit = {
+  def generate(seeds: Float = 1f, inclusions: Float = 1f): Unit = {
     val rand = new Random()
     val futures = for {
       x <- 0 until width
@@ -54,13 +54,64 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     } yield {
       future {
         Cell(x, y, (rand.nextFloat(): @switch) match {
-          case x: Float if x > p => if (x > n) BLACK else getHSBColor(rand.nextFloat(), 1f, 1f)
+          case x: Float if x > seeds => if (x > inclusions) BLACK else getHSBColor(rand.nextFloat(), 1f, 1f)
           case _ => WHITE
         })
       }
     }
 
     space = futures.map(c => Await.result(c, 100 milli))(breakOut)
+  }
 
+
+  /**
+   * Insert inclusions to space
+   *
+   * @param numberOfInclusions  on space
+   * @param maxRadius  for inclusions
+   * @return space with inclusions
+   */
+  def setInclusions(numberOfInclusions: Int, maxRadius: Int)(implicit s: Space) = {
+    implicit val spaceWithInclusions = scala.collection.mutable.Seq(space: _*)
+
+    for (inc <- 0 until numberOfInclusions) {
+      val draw = Random.shuffle(space).head
+      val radius = Random.nextInt(maxRadius)
+      val cells = s transform inclusions(draw.x, draw.y, radius)
+      for (cell <- cells)
+        spaceWithInclusions(cell._2 + (cell._1 * s.height)) = Cell(cell._1, cell._2, BLACK)
+    }
+
+    space = spaceWithInclusions
+  }
+
+  private def inclusions(x0: Int, y0: Int, radius: Int): Seq[(Int, Int)] = {
+    var x = radius
+    var y = 0
+    var xChange = 1 - (radius << 1)
+    var yChange = 0
+    var radiusError = 0
+    var inclusions: Seq[(Int, Int)] = Seq.empty
+
+    while (x >= y) {
+      for (i <- x0 - x until x0 + x) {
+        inclusions ++= (i, y0 + y) :: Nil
+        inclusions ++= (i, y0 - y) :: Nil
+      }
+      for (i <- x0 - y until x0 + y) {
+        inclusions ++= (i, y0 + x) :: Nil
+        inclusions ++= (i, y0 - x) :: Nil
+      }
+      y += 1
+      radiusError += yChange
+      yChange += 2
+      if (((radiusError << 1) + xChange) > 0) {
+        x -= 1
+        radiusError += xChange
+        xChange += 2
+      }
+    }
+
+    inclusions
   }
 }

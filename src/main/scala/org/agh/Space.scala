@@ -41,18 +41,6 @@ abstract case class CASpace(width: Int, height: Int) extends Space {
       }
     }
   }
-
-  /**
-   * Insert inclusions to space
-   *
-   * @param numberOfInclusions  on space
-   * @param maxRadius  for inclusions
-   * @param space with inclusions
-   * @return space with inclusions
-   */
-  def setInclusions(numberOfInclusions: Int, maxRadius: Double)(implicit space: Seq[Cell]): Seq[Cell] = {
-    ???
-  }
 }
 
 abstract case class MASpace(width: Int, height: Int) extends Space {
