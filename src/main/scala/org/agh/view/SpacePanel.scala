@@ -46,6 +46,12 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     repaint()
   }
 
+  /**
+   * Generate space
+   *
+   * @param seeds numebr of nucleation cells
+   * @param inclusions number of inactive cells
+   */
   def generate(seeds: Float = 1f, inclusions: Float = 1f): Unit = {
     val rand = new Random()
     val futures = for {
@@ -77,7 +83,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     for (inc <- 0 until numberOfInclusions) {
       val draw = Random.shuffle(space).head
       val radius = Random.nextInt(maxRadius)
-      val cells = s transform inclusions(draw.x, draw.y, radius)
+      val cells = s transform inclusion(draw.x, draw.y, radius)
       for (cell <- cells)
         spaceWithInclusions(cell._2 + (cell._1 * s.height)) = Cell(cell._1, cell._2, BLACK)
     }
@@ -85,23 +91,36 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     space = spaceWithInclusions
   }
 
-  private def inclusions(x0: Int, y0: Int, radius: Int): Seq[(Int, Int)] = {
+  private def inclusion(x: Int, y: Int, size: Int): Seq[(Int, Int)] = {
+    (new Random().nextBoolean(): @switch) match {
+      case true => circleInclusion(x, y, size)
+      case false => rectInclusion(x, y, size)
+    }
+  }
+
+  private def circleInclusion(x0: Int, y0: Int, radius: Int): Seq[(Int, Int)] = {
+    var inclusion: Seq[(Int, Int)] = Seq.empty
     var x = radius
     var y = 0
     var xChange = 1 - (radius << 1)
     var yChange = 0
     var radiusError = 0
-    var inclusions: Seq[(Int, Int)] = Seq.empty
 
     while (x >= y) {
-      for (i <- x0 - x until x0 + x) {
-        inclusions ++= (i, y0 + y) :: Nil
-        inclusions ++= (i, y0 - y) :: Nil
+      var i = x0 - x
+      while (i < x0 + x) {
+        inclusion ++= (i, y0 + y) :: Nil
+        inclusion ++= (i, y0 - y) :: Nil
+        i += 1
       }
-      for (i <- x0 - y until x0 + y) {
-        inclusions ++= (i, y0 + x) :: Nil
-        inclusions ++= (i, y0 - x) :: Nil
+
+      i = x0 - y
+      while (i < x0 + y) {
+        inclusion ++= (i, y0 + x) :: Nil
+        inclusion ++= (i, y0 - x) :: Nil
+        i += 1
       }
+
       y += 1
       radiusError += yChange
       yChange += 2
@@ -112,6 +131,23 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
       }
     }
 
-    inclusions
+    inclusion
+  }
+
+  private def rectInclusion(x0: Int, y0: Int, edge: Int): Seq[(Int, Int)] = {
+    var inclusion: Seq[(Int, Int)] = Seq.empty
+    var x = 0
+    var y = 0
+
+    while (x < edge) {
+      while (y < edge) {
+        inclusion ++= (x0 + x, y0 + y) :: Nil
+        y += 1
+      }
+      y = 0
+      x += 1
+    }
+
+    inclusion
   }
 }

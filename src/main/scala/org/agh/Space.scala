@@ -12,7 +12,7 @@ trait Space extends Neighbours {
 
   import java.awt.Color._
 
-  val inactive = BLACK :: WHITE :: Nil
+  val permanent = BLACK :: WHITE :: Nil
   val probability = 0.7d
   val RANDOM = new Random(System.currentTimeMillis())
 

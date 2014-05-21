@@ -13,7 +13,7 @@ import scala.swing.event.{MouseClicked, ButtonClicked}
  */
 object App extends SwingApplication {
   val width = 500
-  val height = 400
+  val height = 500
   val cellSize = 1
   implicit val space = new CASpace(width, height) with RandomMoore with Periodic
 
@@ -25,7 +25,7 @@ object App extends SwingApplication {
   }
 
   canvas generate 0.9987654321f
-  canvas setInclusions(20, 5)
+  canvas setInclusions(30, 10)
 
   def top = new MainFrame {
     title = "SCA"
@@ -48,8 +48,9 @@ object App extends SwingApplication {
   }
 
   override def startup(args: Array[String]) {
-    UIManager.setLookAndFeel(
-      UIManager.getSystemLookAndFeelClassName)
+    UIManager.setLookAndFeel {
+      UIManager.getSystemLookAndFeelClassName
+    }
     top.visible = true
   }
 

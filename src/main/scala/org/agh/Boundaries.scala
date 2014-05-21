@@ -9,18 +9,18 @@ import java.awt.Color
 abstract class Boundaries {
   val width: Int
   val height: Int
-  val inactive: Seq[Color]
+  val permanent: Seq[Color]
 
-  def mutate(cells: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
-    removeInactive {
-      transform(cells)
+  def mutate(xys: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+    removePermanent {
+      transform(xys)
     }
   }
 
-  def transform(cells: Seq[(Int, Int)]): Seq[(Int, Int)]
+  def transform(xys: Seq[(Int, Int)]): Seq[(Int, Int)]
 
-  def removeInactive(ts: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
-    ts map (t => space(t._2 + (height * t._1))) filter (c => !inactive.contains(c.v))
+  def removePermanent(ts: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+    ts map (t => space(t._2 + (height * t._1))) filter (c => !permanent.contains(c.v))
   }
 }
 
@@ -29,13 +29,17 @@ trait Periodic extends Boundaries {
 
   private def pY(y: Int): Int = ((y % height) + height) % height
 
-  override def transform(cells: Seq[(Int, Int)]): Seq[(Int, Int)] = {
-    cells map (p => (pX(p._1), pY(p._2)))
+  override def transform(xys: Seq[(Int, Int)]): Seq[(Int, Int)] = {
+    xys map (p => (pX(p._1), pY(p._2)))
   }
 }
 
 trait Absorbs extends Boundaries {
-  override def transform(cells: Seq[(Int, Int)]): Seq[(Int, Int)] = {
-      cells filter (p => p._1 >= 0 && p._2 >= 0 && p._1 < width && p._2 < height)
+  private def isOutside(xy: (Int, Int)): Boolean = {
+    xy._1 >= 0 && xy._2 >= 0 && xy._1 < width && xy._2 < height
+  }
+  
+  override def transform(xys: Seq[(Int, Int)]): Seq[(Int, Int)] = {
+      xys filter isOutside
   }
 }
