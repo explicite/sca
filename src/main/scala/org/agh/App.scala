@@ -40,9 +40,9 @@ object App extends SwingApplication {
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
           case Control => println(s"left clicked at $e")
-          case _ => Some
+          case _ => Unit
         }
-        case _ => Some
+        case _ => Unit
       }
     }
   }

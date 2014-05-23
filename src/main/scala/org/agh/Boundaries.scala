@@ -11,17 +11,21 @@ abstract class Boundaries {
   val height: Int
   val permanent: Seq[Color]
 
-  def mutate(xys: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+  def mutate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
     removePermanent {
-      transform(xys)
+      transform(coordinates)
     }
   }
 
-  def transform(xys: Seq[(Int, Int)]): Seq[(Int, Int)]
+  def transform(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)]
 
-  def removePermanent(ts: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
-    ts map (t => space(t._2 + (height * t._1))) filter (c => !permanent.contains(c.v))
+  def removePermanent(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+    coordinates map {
+      case (x, y) => space(y + (height * x))
+    } filter ifPermanent
   }
+
+  private def ifPermanent(c: Cell): Boolean = !permanent.contains(c.v)
 }
 
 trait Periodic extends Boundaries {
@@ -29,17 +33,21 @@ trait Periodic extends Boundaries {
 
   private def pY(y: Int): Int = ((y % height) + height) % height
 
-  override def transform(xys: Seq[(Int, Int)]): Seq[(Int, Int)] = {
-    xys map (p => (pX(p._1), pY(p._2)))
+  override def transform(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)] = {
+    coordinates map {
+      case (x, y) => (pX(x), pY(y))
+    }
   }
 }
 
 trait Absorbs extends Boundaries {
-  private def isOutside(xy: (Int, Int)): Boolean = {
-    xy._1 >= 0 && xy._2 >= 0 && xy._1 < width && xy._2 < height
+  override def transform(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)] = {
+    coordinates filter ifOutside
   }
-  
-  override def transform(xys: Seq[(Int, Int)]): Seq[(Int, Int)] = {
-      xys filter isOutside
+
+  private def ifOutside(xy: (Int, Int)): Boolean = {
+    xy match {
+      case (x, y) => x >= 0 && y >= 0 && x < width && y < height
+    }
   }
 }
