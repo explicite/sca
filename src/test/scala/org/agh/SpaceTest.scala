@@ -3,10 +3,6 @@ package org.agh
 import org.scalatest.{FunSuite, Matchers}
 import java.awt.Color._
 
-/**
- * @author Jan Paw
- *         Date: 3/17/14
- */
 class SpaceTest extends FunSuite with Matchers with Speed {
   val width: Int = 10
   val height: Int = 20

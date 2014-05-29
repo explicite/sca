@@ -12,20 +12,16 @@ import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.collection.breakOut
 
-/**
- * @author Jan Paw
- *         date: 3/18/14
- */
 class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
-  var space: Seq[Cell] = Nil
+  var cells: Seq[Cell] = Nil
 
   override lazy val peer = new JComponent {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
 
     override def paint(g: Graphics) = {
       var i = 0
-      while (i < space.length) {
-        val c = space(i)
+      while (i < cells.length) {
+        val c = cells(i)
         g.setColor(c.v)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
         i += 1
@@ -41,8 +37,8 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
     }
   }
 
-  def paint(s: Seq[Cell]) = {
-    space = s
+  def paint(space: Seq[Cell]) = {
+    cells = space
     repaint()
   }
 
@@ -66,7 +62,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
       }
     }
 
-    space = futures.map(c => Await.result(c, 100 milli))(breakOut)
+    cells = futures.map(c => Await.result(c, 100 milli))(breakOut)
   }
 
 
@@ -77,18 +73,19 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
    * @param maxRadius  for inclusions
    * @return space with inclusions
    */
-  def setInclusions(numberOfInclusions: Int, maxRadius: Int)(implicit s: Space) = {
-    implicit val spaceWithInclusions = scala.collection.mutable.Seq(space: _*)
+  def setInclusions(numberOfInclusions: Int, maxRadius: Int)(implicit space: Space) = {
+    implicit val spaceWithInclusions = scala.collection.mutable.Seq(cells: _*)
 
     for (inc <- 0 until numberOfInclusions) {
-      val draw = Random.shuffle(space).head
+      val draw = Random.shuffle(cells).head
       val radius = Random.nextInt(maxRadius)
-      val cells = s transform inclusion(draw.x, draw.y, radius)
-      for (cell <- cells)
-        spaceWithInclusions(cell._2 + (cell._1 * s.height)) = Cell(cell._1, cell._2, BLACK)
+      val newCells = space transforms inclusion(draw.x, draw.y, radius)
+      for (cell <- newCells){
+        spaceWithInclusions(cell._2 + (cell._1 * space.height)) = Cell(cell._1, cell._2, BLACK)
+      }
     }
 
-    space = spaceWithInclusions
+    cells = spaceWithInclusions
   }
 
   private def inclusion(x: Int, y: Int, size: Int): Seq[(Int, Int)] = {

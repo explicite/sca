@@ -2,19 +2,10 @@ package org.agh
 
 import scala.annotation._
 import java.awt.Color._
-import scala.util.Random
 
-/**
- * @author Jan Paw
- *         Date: 3/16/14
- */
 trait Space extends Neighbours {
-
-  import java.awt.Color._
-
   val permanent = BLACK :: WHITE :: Nil
   val probability = 0.7d
-  val RANDOM = new Random(System.currentTimeMillis())
 
   /**
    * Iteration over all cells in space
@@ -35,7 +26,7 @@ abstract case class CASpace(width: Int, height: Int) extends Space {
   def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
     space.map {
       c => (c.v: @switch) match {
-        case WHITE => c.evaluate(value)
+        case WHITE => c(value)
         case _ => c
       }
     }

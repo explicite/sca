@@ -7,10 +7,6 @@ import org.agh.view.SpacePanel
 import scala.swing.event.Key.Modifier.Control
 import scala.swing.event.{MouseClicked, ButtonClicked}
 
-/**
- * @author Jan Paw 
- *         Date: 3/18/14
- */
 object App extends SwingApplication {
   val width = 500
   val height = 500
@@ -36,7 +32,7 @@ object App extends SwingApplication {
     listenTo(canvas.mouse.clicks)
     reactions += {
       case ButtonClicked(`iterate`) =>
-        canvas.paint(space.iterate(canvas.space))
+        canvas.paint(space.iterate(canvas.cells))
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
           case Control => println(s"left clicked at $e")
