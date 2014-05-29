@@ -26,7 +26,6 @@ trait Space extends Neighbours {
 }
 
 abstract case class CASpace(width: Int, height: Int) extends Space {
-
   /**
    * Iteration over all cells in CA
    *
@@ -36,7 +35,7 @@ abstract case class CASpace(width: Int, height: Int) extends Space {
   def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
     space.map {
       c => (c.v: @switch) match {
-        case WHITE => c.evaluate(neighbours)
+        case WHITE => c.evaluate(value)
         case _ => c
       }
     }

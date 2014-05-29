@@ -11,7 +11,7 @@ abstract class Boundaries {
   val height: Int
   val permanent: Seq[Color]
 
-  def mutate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+  def mutate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
     removePermanent {
       transform(coordinates)
     }
@@ -19,13 +19,16 @@ abstract class Boundaries {
 
   def transform(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)]
 
-  def removePermanent(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
-    coordinates map {
-      case (x, y) => space(y + (height * x))
-    } filter ifPermanent
+  def removePermanent(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
+    coordinates map toColor filter ifPermanent
   }
 
-  private def ifPermanent(c: Cell): Boolean = !permanent.contains(c.v)
+  private def ifPermanent(c: Color): Boolean = !permanent.contains(c)
+  private def toColor(coordinate: (Int, Int))(implicit space: Seq[Cell]): Color = {
+    coordinate match {
+      case (x, y) => space(y + (height * x)).v
+    }
+  }
 }
 
 trait Periodic extends Boundaries {
@@ -45,8 +48,8 @@ trait Absorbs extends Boundaries {
     coordinates filter ifOutside
   }
 
-  private def ifOutside(xy: (Int, Int)): Boolean = {
-    xy match {
+  private def ifOutside(coordinate: (Int, Int)): Boolean = {
+    coordinate match {
       case (x, y) => x >= 0 && y >= 0 && x < width && y < height
     }
   }

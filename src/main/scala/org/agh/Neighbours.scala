@@ -14,24 +14,24 @@ abstract class Neighbours extends Boundaries {
 
   val probability: Double
 
-  protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color]
+  protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color]
 
   protected def randomCase(cases: Int): Int = random.nextInt(cases) + 1
 
-  protected def first(cells: Seq[Cell]): Option[Color] = {
+  protected def first(cells: Seq[Color]): Option[Color] = {
     (cells: @switch) match {
       case head :: tail =>
-        val cellsWithCount = cells map (c => (c, cells.count(_.v == c.v)))
-        Some(cellsWithCount.sortWith(_._2 < _._2).map(ci => ci._1).head.v)
+        val cellsWithCount = cells map (c => (c, cells.count(_ == c)))
+        Some(cellsWithCount.sortWith(_._2 < _._2).map(ci => ci._1).head)
       case Nil => None
     }
   }
 
-  protected def chain(cells: Seq[Cell]): Option[Color] = {
+  protected def chain(cells: Seq[Color]): Option[Color] = {
 
     def evaluate(s: Int): Option[Color] = {
       def chained(idx: Int): Boolean = {
-        def bound(idx: Int) = cells(((idx % cells.length) + cells.length) % cells.length).v.getRGB
+        def bound(idx: Int) = cells(((idx % cells.length) + cells.length) % cells.length).getRGB
 
         if (bound(idx - 1) == bound(idx) && bound(idx - 1) == bound(idx + 1) && bound(idx) == bound(idx + 1))
           true
@@ -40,7 +40,7 @@ abstract class Neighbours extends Boundaries {
       }
 
       if (chained(s))
-        Some(cells(s).v)
+        Some(cells(s))
       else if (s > 0)
         evaluate(s - 1)
       else
@@ -57,7 +57,7 @@ abstract class Neighbours extends Boundaries {
 }
 
 trait VonNeumann extends Neighbours {
-  protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+  override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     first {
       mutate {
         (x, y - 1) ::(x, y + 1) ::(x - 1, y) ::(x + 1, y) :: Nil
@@ -67,7 +67,7 @@ trait VonNeumann extends Neighbours {
 }
 
 trait NearestMoore extends Neighbours {
-  protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+  override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     chain {
       mutate {
         (x, y - 1) ::(x + 1, y) ::(x, y + 1) ::(x - 1, y) :: Nil
@@ -77,7 +77,7 @@ trait NearestMoore extends Neighbours {
 }
 
 trait FurtherMoore extends Neighbours {
-  override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+  override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     chain {
       mutate {
         (x - 1, y - 1) ::(x + 1, y - 1) ::(x + 1, y + 1) ::(x - 1, y + 1) :: Nil
@@ -87,7 +87,7 @@ trait FurtherMoore extends Neighbours {
 }
 
 trait RandomMoore extends Neighbours {
-  override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+  override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     import Neighbours._
 
     (random.nextFloat(): @switch) match {
@@ -103,7 +103,7 @@ trait RandomMoore extends Neighbours {
 }
 
 trait Moore extends Neighbours {
-  protected override def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+ override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     first {
       mutate {
         (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
@@ -113,7 +113,7 @@ trait Moore extends Neighbours {
 }
 
 trait Pentagonal extends Neighbours {
-  override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+  override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     first {
       mutate {
         (randomCase(4): @switch) match {
@@ -128,7 +128,7 @@ trait Pentagonal extends Neighbours {
 }
 
 trait Hexagonal extends Neighbours {
-  override protected def neighbours(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
+  override protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     first {
       mutate {
         (randomCase(2): @switch) match {
