@@ -14,20 +14,18 @@ abstract class Boundaries {
   def transforms(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)]
 
   def removePermanent(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
-    evaluate(coordinates) filter predicate
-
     def predicate(c: Color): Boolean = !permanent.contains(c)
+    evaluate(coordinates) filter predicate
   }
   
   def evaluate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
-    coordinates map toColor
-
     def toColor(coordinate: (Int, Int))(implicit space: Seq[Cell]): Color = {
       coordinate match {
-        case (x, y) => space(y + (height * x)).v
+        case (x, y) => space(y + (height * x))
       }
     }
-  } 
+    coordinates map toColor
+  }
 }
 
 trait Periodic extends Boundaries {

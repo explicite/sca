@@ -3,7 +3,9 @@ package org.agh
 import java.awt.Color
 import scala.annotation.switch
 
-abstract class Neighbours extends Boundaries with ShapeControl with Random {
+abstract class Neighbours
+  extends Boundaries
+  with ShapeControl {
 
   def onTheEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
     val milieuValues = evaluate(milieu(x, y))
@@ -122,12 +124,4 @@ trait Convexity extends ShapeControl {
       case _ => None
     }
   }
-}
-
-trait Random {
-  private val random = new scala.util.Random()
-
-  protected def randomCase = (cases: Int) => random.nextInt(cases) + 1
-
-  protected def randomFloat = random.nextFloat()
 }

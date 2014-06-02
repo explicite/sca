@@ -1,18 +1,21 @@
-package org.agh.view
+package org.agh
+package view
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import java.awt.{Dimension, Graphics}
-import javax.swing.JComponent
-import scala.swing.Component
-import org.agh.{Space, Cell}
-import java.awt.Color._
-import scala.util.Random
-import scala.annotation.switch
-import scala.concurrent._
-import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.collection.breakOut
+import scala.annotation.switch
+import javax.swing.JComponent
+import scala.swing.Component
+import scala.concurrent._
+import java.awt.Color._
+import org.agh.Cell
 
-class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
+class SpacePanel(val width: Int, val height: Int, cellSize: Int)
+  extends Component
+  with Inclusions {
+
   var cells: Seq[Cell] = Nil
 
   override lazy val peer = new JComponent {
@@ -22,7 +25,7 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
       var i = 0
       while (i < cells.length) {
         val c = cells(i)
-        g.setColor(c.v)
+        g.setColor(c)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
         i += 1
       }
@@ -49,102 +52,18 @@ class SpacePanel(width: Int, height: Int, cellSize: Int) extends Component {
    * @param inclusions number of inactive cells
    */
   def generate(seeds: Float = 1f, inclusions: Float = 1f): Unit = {
-    val rand = new Random()
     val futures = for {
       x <- 0 until width
       y <- 0 until height
     } yield {
       future {
-        Cell(x, y, (rand.nextFloat(): @switch) match {
-          case x: Float if x > seeds => if (x > inclusions) BLACK else getHSBColor(rand.nextFloat(), 1f, 1f)
+        Cell(x, y, (randomFloat: @switch) match {
+          case x: Float if x > seeds => if (x > inclusions) BLACK else getHSBColor(randomFloat, 1f, 1f)
           case _ => WHITE
         })
       }
     }
 
     cells = futures.map(c => Await.result(c, 100 milli))(breakOut)
-  }
-
-
-  /**
-   * Insert inclusions to space
-   *
-   * @param numberOfInclusions  on space
-   * @param maxRadius  for inclusions
-   * @return space with inclusions
-   */
-  def setInclusions(numberOfInclusions: Int, maxRadius: Int)(implicit space: Space) = {
-    implicit val spaceWithInclusions = scala.collection.mutable.Seq(cells: _*)
-
-    for (inc <- 0 until numberOfInclusions) {
-      val draw = Random.shuffle(cells).head
-      val radius = Random.nextInt(maxRadius)
-      val newCells = space transforms inclusion(draw.x, draw.y, radius)
-      for (cell <- newCells){
-        spaceWithInclusions(cell._2 + (cell._1 * space.height)) = Cell(cell._1, cell._2, BLACK)
-      }
-    }
-
-    cells = spaceWithInclusions
-  }
-
-  private def inclusion(x: Int, y: Int, size: Int): Seq[(Int, Int)] = {
-    (new Random().nextBoolean(): @switch) match {
-      case true => circleInclusion(x, y, size)
-      case false => rectInclusion(x, y, size)
-    }
-  }
-
-  private def circleInclusion(x0: Int, y0: Int, radius: Int): Seq[(Int, Int)] = {
-    var inclusion: Seq[(Int, Int)] = Seq.empty
-    var x = radius
-    var y = 0
-    var xChange = 1 - (radius << 1)
-    var yChange = 0
-    var radiusError = 0
-
-    while (x >= y) {
-      var i = x0 - x
-      while (i < x0 + x) {
-        inclusion ++= (i, y0 + y) :: Nil
-        inclusion ++= (i, y0 - y) :: Nil
-        i += 1
-      }
-
-      i = x0 - y
-      while (i < x0 + y) {
-        inclusion ++= (i, y0 + x) :: Nil
-        inclusion ++= (i, y0 - x) :: Nil
-        i += 1
-      }
-
-      y += 1
-      radiusError += yChange
-      yChange += 2
-      if (((radiusError << 1) + xChange) > 0) {
-        x -= 1
-        radiusError += xChange
-        xChange += 2
-      }
-    }
-
-    inclusion
-  }
-
-  private def rectInclusion(x0: Int, y0: Int, edge: Int): Seq[(Int, Int)] = {
-    var inclusion: Seq[(Int, Int)] = Seq.empty
-    var x = 0
-    var y = 0
-
-    while (x < edge) {
-      while (y < edge) {
-        inclusion ++= (x0 + x, y0 + y) :: Nil
-        y += 1
-      }
-      y = 0
-      x += 1
-    }
-
-    inclusion
   }
 }
