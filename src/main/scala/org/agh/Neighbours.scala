@@ -1,24 +1,29 @@
 package org.agh
 
-import scala.util.Random
 import java.awt.Color
 import scala.annotation.switch
 
-abstract class Neighbours extends Boundaries with ShapeControl {
+abstract class Neighbours extends Boundaries with ShapeControl with Random {
 
-  private val random = new Random()
+  def onTheEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
+    val milieuValues = evaluate(milieu(x, y))
+    val milieuSize = milieuValues.size
+    val uniqueSize = milieuValues.distinct.size
 
-  protected def randomCase = (cases: Int) => random.nextInt(cases) + 1
-
-  protected def randomFloat = random.nextFloat()
+    milieuSize != uniqueSize
+  }
 
   val probability: Double
 
   protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    (mutate _ andThen expand)(coordinates(x,y))
+    (mutate _ andThen expand)(coordinates(x, y))
   }
 
   protected def coordinates(x: Int, y: Int): Seq[(Int, Int)]
+
+  private def milieu(x: Int, y: Int): Seq[(Int, Int)] = {
+    (x, y) ::(x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
+  }
 }
 
 trait VonNeumann extends Neighbours with Concavity {
@@ -117,4 +122,12 @@ trait Convexity extends ShapeControl {
       case _ => None
     }
   }
+}
+
+trait Random {
+  private val random = new scala.util.Random()
+
+  protected def randomCase = (cases: Int) => random.nextInt(cases) + 1
+
+  protected def randomFloat = random.nextFloat()
 }
