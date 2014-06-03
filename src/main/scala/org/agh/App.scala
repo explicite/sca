@@ -1,11 +1,12 @@
 package org.agh
 
-import scala.swing._
 import java.awt.event.MouseEvent.{BUTTON1 => LeftButton}
-import javax.swing.UIManager
-import org.agh.view.SpacePanel
-import scala.swing.event.Key.Modifier.Control
 import scala.swing.event.{MouseClicked, ButtonClicked}
+import scala.swing.event.Key.Modifier.Control
+import org.agh.view.SpacePanel
+import javax.swing.{BorderFactory, UIManager}
+import java.awt.Color
+import scala.swing._
 
 object App extends SwingApplication {
   val width = 500
@@ -15,9 +16,18 @@ object App extends SwingApplication {
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")
+  lazy val edges = new Button("remove edges")
 
-  lazy val panel = new FlowPanel() {
-    contents ++= canvas :: iterate :: Nil
+  lazy val menu = new GridPanel(2, 1) {
+    contents ++= iterate :: edges :: Nil
+    border = BorderFactory.createCompoundBorder(
+      BorderFactory.createTitledBorder("menu"),
+      BorderFactory.createEmptyBorder(5, 5, 5, 5)
+    )
+  }
+
+  lazy val content = new FlowPanel() {
+    contents ++= canvas :: menu :: Nil
   }
 
   canvas generate 0.9987654321f
@@ -25,17 +35,19 @@ object App extends SwingApplication {
 
   def top = new MainFrame {
     title = "SCA"
-    contents = panel
+    contents = content
     val point: Point = new Point
 
-    listenTo(iterate)
+    listenTo(iterate, edges)
     listenTo(canvas.mouse.clicks)
     reactions += {
       case ButtonClicked(`iterate`) =>
-        canvas.paint(space.iterate(canvas.cells))
+        canvas.iterate
+      case ButtonClicked(`edges`) =>
+        canvas.onTheEdge((c: Cell) => Cell(c.x, c.y, Color.WHITE))
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
-          case Control => println(s"left clicked at $e")
+          case Control => println(canvas.getCell(e))
           case _ => Unit
         }
         case _ => Unit

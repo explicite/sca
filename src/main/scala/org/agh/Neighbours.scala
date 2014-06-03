@@ -1,21 +1,23 @@
 package org.agh
 
-import java.awt.Color
 import scala.annotation.switch
+import java.awt.Color
 
 abstract class Neighbours
   extends Boundaries
   with ShapeControl {
 
+  protected val probability: Double
+
   def onTheEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
-    val milieuValues = evaluate(milieu(x, y))
-    val milieuSize = milieuValues.size
-    val uniqueSize = milieuValues.distinct.size
+    val values = (transforms _ andThen evaluate)(milieu(x, y))
+    val uniqueValues = values groupBy (_.getRGB)
 
-    milieuSize != uniqueSize
+    (uniqueValues.size: @switch) match {
+      case 1 => false
+      case _ => values.size != uniqueValues.size
+    }
   }
-
-  val probability: Double
 
   protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
     (mutate _ andThen expand)(coordinates(x, y))

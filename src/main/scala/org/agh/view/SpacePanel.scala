@@ -3,8 +3,10 @@ package view
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.awt.{Dimension, Graphics}
+import scala.swing.event.MouseClicked
 import scala.concurrent.duration._
 import scala.collection.breakOut
+import scala.language.postfixOps
 import scala.annotation.switch
 import javax.swing.JComponent
 import scala.swing.Component
@@ -16,7 +18,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   extends Component
   with Inclusions {
 
-  var cells: Seq[Cell] = Nil
+  implicit var cells: Seq[Cell] = Nil
 
   override lazy val peer = new JComponent {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
@@ -40,15 +42,25 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     }
   }
 
-  def paint(space: Seq[Cell]) = {
-    cells = space
+  def iterate(implicit space: Space) {
+    cells = space.iterate
     repaint()
+  }
+
+  def onTheEdge(modify: Cell => Cell)(implicit space: Space) {
+    cells = space.inTheEdge(modify)
+    repaint()
+  }
+
+  def getCell(mc: MouseClicked): Cell = {
+    val point = mc.point
+    cells(point.y + (height * point.x))
   }
 
   /**
    * Generate space
    *
-   * @param seeds numebr of nucleation cells
+   * @param seeds number of nucleation cells
    * @param inclusions number of inactive cells
    */
   def generate(seeds: Float = 1f, inclusions: Float = 1f): Unit = {
@@ -56,7 +68,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       x <- 0 until width
       y <- 0 until height
     } yield {
-      future {
+      Future {
         Cell(x, y, (randomFloat: @switch) match {
           case x: Float if x > seeds => if (x > inclusions) BLACK else getHSBColor(randomFloat, 1f, 1f)
           case _ => WHITE

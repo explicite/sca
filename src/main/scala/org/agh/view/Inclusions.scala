@@ -1,9 +1,8 @@
 package org.agh.view
 
-import org.agh._
-import java.awt.Color._
-import org.agh.Cell
 import scala.annotation.switch
+import java.awt.Color._
+import org.agh._
 
 trait Inclusions {
   val width: Int
@@ -24,8 +23,8 @@ trait Inclusions {
       val draw = randomCell(cells)
       val radius = randomInt(maxRadius)
 
-      space transforms inclusion(draw.x, draw.y, radius) foreach{
-        case(x, y) =>
+      space transforms inclusion(draw.x, draw.y, radius) foreach {
+        case (x, y) =>
           spaceWithInclusions(y + (x * space.height)) = Cell(x, y, BLACK)
       }
     }

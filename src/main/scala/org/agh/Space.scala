@@ -14,6 +14,15 @@ trait Space extends Neighbours {
    * @return evaluated space
    */
   def iterate(implicit space: Seq[Cell]): Seq[Cell]
+
+  def inTheEdge(modify: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
+    space.map {
+      case cell => onTheEdge(cell.x, cell.y) match {
+        case true => modify(cell)
+        case false => cell
+      }
+    }
+  }
 }
 
 abstract case class CASpace(width: Int, height: Int) extends Space {
@@ -25,7 +34,7 @@ abstract case class CASpace(width: Int, height: Int) extends Space {
    */
   def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
     space.map {
-      c => (c.v: @switch) match {
+      c => (c.value: @switch) match {
         case WHITE => c(value)
         case _ => c
       }
