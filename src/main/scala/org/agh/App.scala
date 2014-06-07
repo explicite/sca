@@ -17,9 +17,11 @@ object App extends SwingApplication {
   lazy val canvas = new SpacePanel(width, height, cellSize)
   lazy val iterate = new Button("iterate")
   lazy val edges = new Button("remove edges")
+  lazy val active = new Button("remove active")
+  lazy val inactive = new Button("remove inactive")
 
-  lazy val menu = new GridPanel(2, 1) {
-    contents ++= iterate :: edges :: Nil
+  lazy val menu = new GridPanel(2, 2) {
+    contents ++= iterate :: edges :: active :: inactive :: Nil
     border = BorderFactory.createCompoundBorder(
       BorderFactory.createTitledBorder("menu"),
       BorderFactory.createEmptyBorder(5, 5, 5, 5)
@@ -38,19 +40,20 @@ object App extends SwingApplication {
     contents = content
     val point: Point = new Point
 
-    listenTo(iterate, edges)
-    listenTo(canvas.mouse.clicks)
+    listenTo(iterate, edges, active, inactive, canvas.mouse.clicks)
     reactions += {
       case ButtonClicked(`iterate`) =>
         canvas.iterate
       case ButtonClicked(`edges`) =>
-        canvas.onTheEdge((c: Cell) => Cell(c.x, c.y, Color.WHITE))
+        canvas.onTheEdge((c: Cell) => Cell(c.x, c.y))
+      case ButtonClicked(`active`) =>
+        canvas.removeActive()
+      case ButtonClicked(`inactive`) =>
+        canvas.removeInactive()
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
           case Control => canvas.selectGrain(e)
-          case _ => Unit
         }
-        case _ => Unit
       }
     }
   }

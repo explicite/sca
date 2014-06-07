@@ -12,7 +12,6 @@ import javax.swing.JComponent
 import scala.swing.Component
 import scala.concurrent._
 import java.awt.Color._
-import java.awt.Color
 import org.agh.Cell
 
 class SpacePanel(val width: Int, val height: Int, cellSize: Int)
@@ -62,6 +61,30 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       }
     }
     cells = space.modify(modifier)
+    repaint()
+  }
+
+  def removeActive() = {
+    cells = cells.map {
+      cell =>
+        cell.value match {
+          case BLACK => cell
+          case _ => Cell(cell.x, cell.y)
+        }
+    }
+
+    repaint()
+  }
+
+  def removeInactive() = {
+    cells = cells.map {
+      cell =>
+        cell.value match {
+          case BLACK => Cell(cell.x, cell.y)
+          case _ => cell
+        }
+    }
+
     repaint()
   }
 
