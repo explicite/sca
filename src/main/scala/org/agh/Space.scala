@@ -15,9 +15,13 @@ trait Space extends Neighbours {
    */
   def iterate(implicit space: Seq[Cell]): Seq[Cell]
 
-  def inTheEdge(modify: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
+  def modify(modifier: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
+    space map modifier
+  }
+
+  def onTheEdge(modify: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
     space.map {
-      case cell => onTheEdge(cell.x, cell.y) match {
+      case cell => isEdge(cell.x, cell.y) match {
         case true => modify(cell)
         case false => cell
       }

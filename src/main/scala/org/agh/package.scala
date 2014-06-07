@@ -2,6 +2,7 @@ package org
 
 import scala.language.implicitConversions
 import java.awt.Color
+import java.awt.Color._
 
 package object agh {
 
@@ -21,5 +22,7 @@ package object agh {
   def randomCell = (cells: Seq[Cell]) => RANDOM.shuffle(cells).head
 
   def randomBoolean = RANDOM.nextBoolean()
+
+  def randomColor = getHSBColor(randomFloat, 1f, 1f)
 
 }

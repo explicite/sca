@@ -9,7 +9,7 @@ abstract class Neighbours
 
   protected val probability: Double
 
-  def onTheEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
+  def isEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
     val values = (transforms _ andThen evaluate)(milieu(x, y))
     val uniqueValues = values groupBy (_.getRGB)
 

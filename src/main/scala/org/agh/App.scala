@@ -47,7 +47,7 @@ object App extends SwingApplication {
         canvas.onTheEdge((c: Cell) => Cell(c.x, c.y, Color.WHITE))
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
-          case Control => println(canvas.getCell(e))
+          case Control => canvas.selectGrain(e)
           case _ => Unit
         }
         case _ => Unit

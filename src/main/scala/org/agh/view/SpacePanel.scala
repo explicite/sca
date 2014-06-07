@@ -12,6 +12,7 @@ import javax.swing.JComponent
 import scala.swing.Component
 import scala.concurrent._
 import java.awt.Color._
+import java.awt.Color
 import org.agh.Cell
 
 class SpacePanel(val width: Int, val height: Int, cellSize: Int)
@@ -48,7 +49,19 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   }
 
   def onTheEdge(modify: Cell => Cell)(implicit space: Space) {
-    cells = space.inTheEdge(modify)
+    cells = space.onTheEdge(modify)
+    repaint()
+  }
+
+  def selectGrain(mc: MouseClicked)(implicit space: Space) = {
+    val cell = getCell(mc)
+    def modifier(c: Cell): Cell = {
+      c.value match {
+        case cell.value => Cell(c.x, c.y, BLACK)
+        case _ => c
+      }
+    }
+    cells = space.modify(modifier)
     repaint()
   }
 
@@ -70,7 +83,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     } yield {
       Future {
         Cell(x, y, (randomFloat: @switch) match {
-          case x: Float if x > seeds => if (x > inclusions) BLACK else getHSBColor(randomFloat, 1f, 1f)
+          case x: Float if x > seeds => if (x > inclusions) BLACK else randomColor
           case _ => WHITE
         })
       }
