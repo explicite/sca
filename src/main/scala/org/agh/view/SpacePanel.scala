@@ -18,7 +18,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   extends Component
   with Inclusions {
 
-  implicit var cells: Seq[Cell] = Nil
+  implicit var cells: Seq[Cell] = empty()
 
   override lazy val peer = new JComponent {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
@@ -52,7 +52,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     repaint()
   }
 
-  def selectGrain(mc: MouseClicked)(implicit space: Space) = {
+  def selectGrain(mc: MouseClicked)(implicit space: Space) {
     val cell = getCell(mc)
     def modifier(c: Cell): Cell = {
       c.value match {
@@ -64,7 +64,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     repaint()
   }
 
-  def removeActive() = {
+  def removeActive() {
     cells = cells.map {
       cell =>
         cell.value match {
@@ -76,7 +76,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     repaint()
   }
 
-  def removeInactive() = {
+  def removeInactive() {
     cells = cells.map {
       cell =>
         cell.value match {
@@ -88,8 +88,29 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     repaint()
   }
 
-  def getCell(mc: MouseClicked): Cell = {
-    val point = mc.point
+  // TODO fo cell size  > 1
+  def insertRandom(clicked: MouseClicked) {
+    val x0 = clicked.point.x
+    val y0 = clicked.point.y
+    val futures = for {
+      x <- 0 until width
+      y <- 0 until height
+    } yield {
+      Future {
+        if (x == x0 && y == y0)
+          Cell(x, y, randomColor)
+        else
+          cells(y + (height * x))
+      }
+    }
+
+    cells = futures.map(c => Await.result(c, 100 milli))(breakOut)
+
+    repaint()
+  }
+
+  def getCell(clicked: MouseClicked): Cell = {
+    val point = clicked.point
     cells(point.y + (height * point.x))
   }
 
@@ -113,5 +134,18 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     }
 
     cells = futures.map(c => Await.result(c, 100 milli))(breakOut)
+  }
+
+  private def empty(): Seq[Cell] = {
+    val futures = for {
+      x <- 0 until width
+      y <- 0 until height
+    } yield {
+      Future {
+        Cell(x,y)
+      }
+    }
+
+    futures.map(c => Await.result(c, 100 milli))(breakOut)
   }
 }

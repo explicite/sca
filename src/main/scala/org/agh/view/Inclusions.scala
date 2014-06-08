@@ -32,6 +32,10 @@ trait Inclusions {
     cells = spaceWithInclusions
   }
 
+  def setCircleInclusions(numberOfInclusions: Int)(implicit space: Space) = ???
+
+  def setSquareInclusions(numberOfInclusions: Int)(implicit space: Space) = ???
+
   private def inclusion(x: Int, y: Int, size: Int): Seq[(Int, Int)] = {
     (randomBoolean: @switch) match {
       case true => circleInclusion(x, y, size)

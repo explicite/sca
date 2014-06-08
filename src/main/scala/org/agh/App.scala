@@ -3,9 +3,9 @@ package org.agh
 import java.awt.event.MouseEvent.{BUTTON1 => LeftButton}
 import scala.swing.event.{MouseClicked, ButtonClicked}
 import scala.swing.event.Key.Modifier.Control
+import scala.swing.event.Key.Modifier.Shift
 import org.agh.view.SpacePanel
-import javax.swing.{BorderFactory, UIManager}
-import java.awt.Color
+import javax.swing.UIManager
 import scala.swing._
 
 object App extends SwingApplication {
@@ -15,32 +15,53 @@ object App extends SwingApplication {
   implicit val space = new CASpace(width, height) with RandomMoore with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
-  lazy val iterate = new Button("iterate")
-  lazy val edges = new Button("remove edges")
-  lazy val active = new Button("remove active")
-  lazy val inactive = new Button("remove inactive")
+  lazy val iterate: Button = "iterate"
+  lazy val edges: Button = "remove edges"
+  lazy val active: Button = "remove active"
+  lazy val inactive: Button = "remove inactive"
+  lazy val circleInclusionsButton: Button = "apply"
+  lazy val squareInclusionsButton: Button = "apply"
 
-  lazy val menu = new GridPanel(2, 2) {
+  lazy val circleInclusionsField: TextField = 0
+  lazy val squareInclusionsField: TextField = 0
+
+  lazy val circleInclusionsLabel: Label = "circle"
+  lazy val squareInclusionsLabel: Label = "square"
+
+  lazy val inclusionsMenu = new GridPanel(2, 3) {
+    contents ++= circleInclusionsField :: circleInclusionsLabel :: circleInclusionsButton ::
+      squareInclusionsField :: squareInclusionsLabel :: squareInclusionsButton :: Nil
+    border = "inclusions"
+  }
+
+  lazy val buttons = new GridPanel(2, 2) {
     contents ++= iterate :: edges :: active :: inactive :: Nil
-    border = BorderFactory.createCompoundBorder(
-      BorderFactory.createTitledBorder("menu"),
-      BorderFactory.createEmptyBorder(5, 5, 5, 5)
-    )
+    border = "activity"
+  }
+
+  lazy val menu = new GridPanel(2, 1) {
+    contents ++= inclusionsMenu :: buttons :: Nil
+    border = "menu"
   }
 
   lazy val content = new FlowPanel() {
     contents ++= canvas :: menu :: Nil
   }
 
-  canvas generate 0.9987654321f
-  canvas setInclusions(30, 10)
-
   def top = new MainFrame {
     title = "SCA"
     contents = content
-    val point: Point = new Point
 
-    listenTo(iterate, edges, active, inactive, canvas.mouse.clicks)
+    listenTo(
+      iterate,
+      edges,
+      active,
+      inactive,
+      circleInclusionsButton,
+      squareInclusionsButton,
+      canvas.mouse.clicks
+    )
+
     reactions += {
       case ButtonClicked(`iterate`) =>
         canvas.iterate
@@ -50,10 +71,17 @@ object App extends SwingApplication {
         canvas.removeActive()
       case ButtonClicked(`inactive`) =>
         canvas.removeInactive()
+      case ButtonClicked(`circleInclusionsButton`) =>
+        canvas.setCircleInclusions(circleInclusionsField)
+      case ButtonClicked(`squareInclusionsButton`) =>
+        canvas.setSquareInclusions(squareInclusionsField)
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
           case Control => canvas.selectGrain(e)
+          case Shift => canvas.insertRandom(e)
+          case _ =>
         }
+        case _ =>
       }
     }
   }
