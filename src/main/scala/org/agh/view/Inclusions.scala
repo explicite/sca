@@ -3,11 +3,14 @@ package org.agh.view
 import scala.annotation.switch
 import java.awt.Color._
 import org.agh._
+import scala.collection.mutable
 
 trait Inclusions {
   val width: Int
   val height: Int
-  var cells: Seq[Cell]
+  implicit var cells: Seq[Cell]
+
+  def repaint(): Unit
 
   /**
    * Insert inclusions to space
@@ -16,27 +19,51 @@ trait Inclusions {
    * @param maxRadius  for inclusions
    * @return space with inclusions
    */
-  def setInclusions(numberOfInclusions: Int, maxRadius: Int)(implicit space: Space) = {
+  def setRandomInclusions(numberOfInclusions: Int, maxRadius: Int)(implicit space: Space) = {
     implicit val spaceWithInclusions = scala.collection.mutable.Seq(cells: _*)
 
-    for (inc <- 0 until numberOfInclusions) {
-      val draw = randomCell(cells)
+    for (inclusion <- 0 until numberOfInclusions) {
+      val draw = randomCell
       val radius = randomInt(maxRadius)
 
-      space transforms inclusion(draw.x, draw.y, radius) foreach {
+      space transforms randomInclusion(draw.x, draw.y, radius) foreach {
         case (x, y) =>
           spaceWithInclusions(y + (x * space.height)) = Cell(x, y, BLACK)
       }
     }
 
     cells = spaceWithInclusions
+    repaint()
   }
 
-  def setCircleInclusions(numberOfInclusions: Int)(implicit space: Space) = ???
+  def setCircleInclusions(numberOfInclusions: Int)(implicit space: Space): Unit = {
+    setInclusions(numberOfInclusions)(circleInclusion)
+  }
 
-  def setSquareInclusions(numberOfInclusions: Int)(implicit space: Space) = ???
+  def setRectInclusions(numberOfInclusions: Int)(implicit space: Space): Unit = {
+    setInclusions(numberOfInclusions)(rectInclusion)
+  }
 
-  private def inclusion(x: Int, y: Int, size: Int): Seq[(Int, Int)] = {
+
+  private def setInclusions(numberOfInclusions: Int)(insert: (Int, Int, Int) => Seq[(Int, Int)])(implicit space: Space): Unit ={
+    implicit val spaceWithInclusions = scala.collection.mutable.Seq(cells: _*)
+    val maxRadius = ((if (width > height) height else width) * 0.01).toInt
+
+    for (inclusion <- 0 until numberOfInclusions) {
+      val draw = randomCell
+      val radius = randomInt(maxRadius)
+
+      space transforms insert(draw.x, draw.y, radius) foreach {
+        case (x,y) =>
+          spaceWithInclusions(y + (x * space.height)) = Cell(x, y, BLACK)
+      }
+    }
+
+    cells = spaceWithInclusions.toSeq
+    repaint()
+  }
+
+  private def randomInclusion(x: Int, y: Int, size: Int): Seq[(Int, Int)] = {
     (randomBoolean: @switch) match {
       case true => circleInclusion(x, y, size)
       case false => rectInclusion(x, y, size)

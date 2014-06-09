@@ -39,7 +39,7 @@ package object agh {
 
   def randomInt = (max: Int) => RANDOM.nextInt(max)
 
-  def randomCell = (cells: Seq[Cell]) => RANDOM.shuffle(cells).head
+  def randomCell(implicit cells: Seq[Cell]) = RANDOM.shuffle(cells).head
 
   def randomBoolean = RANDOM.nextBoolean()
 

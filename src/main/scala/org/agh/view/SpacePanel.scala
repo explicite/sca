@@ -61,6 +61,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       }
     }
     cells = space.modify(modifier)
+
     repaint()
   }
 
@@ -109,6 +110,21 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     repaint()
   }
 
+  def setNucleation(numberOfSeeds: Int)(implicit space: Space): Unit = {
+    implicit val spaceWithSeeds = scala.collection.mutable.Seq(cells: _*)
+
+    for(seed <- 0 until numberOfSeeds) {
+      randomCell match {
+        case Cell(x, y, value) =>
+          spaceWithSeeds(y+(x*space.height)) = Cell(x, y, randomColor)
+      }
+    }
+
+    cells = spaceWithSeeds
+
+    repaint()
+  }
+
   def getCell(clicked: MouseClicked): Cell = {
     val point = clicked.point
     cells(point.y + (height * point.x))
@@ -142,7 +158,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       y <- 0 until height
     } yield {
       Future {
-        Cell(x,y)
+        Cell(x, y)
       }
     }
 
