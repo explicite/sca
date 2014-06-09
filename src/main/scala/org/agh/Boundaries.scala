@@ -51,3 +51,8 @@ trait Absorbs extends Boundaries {
     }
   }
 }
+
+object Boundaries extends Enumeration {
+  val Absorbs = Value("Absorbs")
+  val Periodic = Value("Periodic")
+}

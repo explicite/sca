@@ -3,7 +3,8 @@ package org.agh
 import scala.annotation._
 import java.awt.Color._
 
-trait Space extends Neighbours {
+// TODO functional approach eg. iterate(implicit seq)(n: seq=>seq)(b: seq=>seq): Seq
+trait Space extends Neighbourhood {
   val permanent = BLACK :: WHITE :: Nil
   val probability = 0.7d
 
@@ -64,4 +65,33 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
    * @return evaluated space
    */
   override def iterate(implicit space: Seq[Cell]): Seq[Cell] = ???
+}
+
+object CASpaceFactory {
+
+  import Boundaries._
+  import Neighbourhood._
+
+  def apply(width: Int, height: Int, boundaries: Boundaries.Value, neighbourhood: Neighbourhood.Value): Space = {
+    boundaries match {
+      case Absorbs => neighbourhood match {
+        case VonNeumann => new CASpace(width, height) with Absorbs with VonNeumann
+        case NearestMoore => new CASpace(width, height) with Absorbs with NearestMoore
+        case FurtherMoore => new CASpace(width, height) with Absorbs with FurtherMoore
+        case RandomMoore => new CASpace(width, height) with Absorbs with RandomMoore
+        case Moore => new CASpace(width, height) with Absorbs with Moore
+        case Pentagonal => new CASpace(width, height) with Absorbs with Pentagonal
+        case Hexagonal => new CASpace(width, height) with Absorbs with Hexagonal
+      }
+      case Periodic => neighbourhood match {
+        case VonNeumann => new CASpace(width, height) with Periodic with VonNeumann
+        case NearestMoore => new CASpace(width, height) with Periodic with NearestMoore
+        case FurtherMoore => new CASpace(width, height) with Periodic with FurtherMoore
+        case RandomMoore => new CASpace(width, height) with Periodic with RandomMoore
+        case Moore => new CASpace(width, height) with Periodic with Moore
+        case Pentagonal => new CASpace(width, height) with Periodic with Pentagonal
+        case Hexagonal => new CASpace(width, height) with Periodic with Hexagonal
+      }
+    }
+  }
 }

@@ -1,11 +1,12 @@
 package org
 
+import scala.swing.{Button, Alignment, TextField, Label, ComboBox}
 import scala.language.implicitConversions
-import java.awt.Color
-import java.awt.Color._
-import scala.swing.{Button, Alignment, TextField, Label}
-import javax.swing.BorderFactory
 import javax.swing.border.CompoundBorder
+import scala.swing.ListView.Renderer
+import javax.swing.BorderFactory
+import java.awt.Color._
+import java.awt.Color
 
 package object agh {
 
@@ -26,6 +27,18 @@ package object agh {
     BorderFactory.createCompoundBorder(
       BorderFactory.createTitledBorder(s),
       BorderFactory.createEmptyBorder(5, 5, 5, 5))
+  }
+
+  implicit def SeqNeighboursToComboBox(sq: Seq[Neighbourhood.Value]): ComboBox[Neighbourhood.Value] = {
+    new ComboBox(sq) {
+      renderer = Renderer(_.toString)
+    }
+  }
+
+  implicit def SeqBoundariesToComboBox(sq: Seq[Boundaries.Value]): ComboBox[Boundaries.Value] = {
+    new ComboBox(sq) {
+      renderer = Renderer(_.toString)
+    }
   }
 
   implicit def StringToButton(s: String): Button = new Button(s)

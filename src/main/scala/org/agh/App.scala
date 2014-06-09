@@ -1,19 +1,21 @@
 package org.agh
 
 import java.awt.event.MouseEvent.{BUTTON1 => LeftButton}
-import scala.swing.event.{MouseClicked, ButtonClicked}
+import scala.swing.event.{SelectionChanged, MouseClicked, ButtonClicked}
 import scala.swing.event.Key.Modifier.Control
 import scala.swing.event.Key.Modifier.Shift
 import scala.swing.Orientation._
 import org.agh.view.SpacePanel
 import javax.swing.UIManager
 import scala.swing._
+import Neighbourhood._
+import Boundaries._
 
 object App extends SwingApplication {
   val width = 500
   val height = 500
   val cellSize = 1
-  implicit val space = new CASpace(width, height) with RandomMoore with Periodic
+  implicit var space: Space = new CASpace(width, height) with RandomMoore with Periodic
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
 
@@ -38,6 +40,15 @@ object App extends SwingApplication {
   lazy val nucleationField: TextField = 0
   lazy val nucleationLabel: Label = "seeds"
 
+  lazy val neighbourhoods: ComboBox[Neighbourhood.Value] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
+
+  lazy val boundaries: ComboBox[Boundaries.Value] = Absorbs :: Periodic :: Nil
+
+  lazy val spaceMenu = new GridPanel(1, 2) {
+    contents ++= neighbourhoods :: boundaries:: Nil
+    border = "space"
+  }
+
   lazy val inclusionsMenu = new GridPanel(2, 3) {
     contents ++= circleInclusionsField :: circleInclusionsLabel :: circleInclusionsButton ::
       rectInclusionsField :: rectInclusionsLabel :: rectInclusionsButton :: Nil
@@ -54,8 +65,8 @@ object App extends SwingApplication {
     border = "activity"
   }
 
-  lazy val menu = new BoxPanel(Vertical){
-    contents ++= inclusionsMenu :: nucleationMenu :: activity :: Nil
+  lazy val menu = new BoxPanel(Vertical) {
+    contents ++= inclusionsMenu :: nucleationMenu :: spaceMenu  :: activity :: Nil
     border = "menu"
   }
 
@@ -75,10 +86,16 @@ object App extends SwingApplication {
       circleInclusionsButton,
       rectInclusionsButton,
       nucleationButton,
+      neighbourhoods.selection,
+      boundaries.selection,
       canvas.mouse.clicks
     )
 
     reactions += {
+      case SelectionChanged(`neighbourhoods`) =>
+        space = CASpaceFactory(width, height, boundaries.selection.item, neighbourhoods.selection.item)
+      case SelectionChanged(`boundaries`) =>
+        space = CASpaceFactory(width, height, boundaries.selection.item, neighbourhoods.selection.item)
       case ButtonClicked(`iterate`) =>
         canvas.iterate
       case ButtonClicked(`edges`) =>

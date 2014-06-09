@@ -3,7 +3,7 @@ package org.agh
 import scala.annotation.switch
 import java.awt.Color
 
-abstract class Neighbours
+abstract class Neighbourhood
   extends Boundaries
   with ShapeControl {
 
@@ -30,25 +30,25 @@ abstract class Neighbours
   }
 }
 
-trait VonNeumann extends Neighbours with Concavity {
+trait VonNeumann extends Neighbourhood with Concavity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (x, y - 1) ::(x, y + 1) ::(x - 1, y) ::(x + 1, y) :: Nil
   }
 }
 
-trait NearestMoore extends Neighbours with Convexity {
+trait NearestMoore extends Neighbourhood with Convexity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (x, y - 1) ::(x + 1, y) ::(x, y + 1) ::(x - 1, y) :: Nil
   }
 }
 
-trait FurtherMoore extends Neighbours with Convexity {
+trait FurtherMoore extends Neighbourhood with Convexity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (x - 1, y - 1) ::(x + 1, y - 1) ::(x + 1, y + 1) ::(x - 1, y + 1) :: Nil
   }
 }
 
-trait RandomMoore extends Neighbours with Concavity {
+trait RandomMoore extends Neighbourhood with Concavity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (randomFloat: @switch) match {
       case f: Float if f <= probability =>
@@ -58,13 +58,13 @@ trait RandomMoore extends Neighbours with Concavity {
   }
 }
 
-trait Moore extends Neighbours with Concavity {
+trait Moore extends Neighbourhood with Concavity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
   }
 }
 
-trait Pentagonal extends Neighbours with Concavity {
+trait Pentagonal extends Neighbourhood with Concavity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (randomCase(4): @switch) match {
       case 1 => (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) :: Nil
@@ -75,7 +75,7 @@ trait Pentagonal extends Neighbours with Concavity {
   }
 }
 
-trait Hexagonal extends Neighbours with Concavity {
+trait Hexagonal extends Neighbourhood with Concavity {
   override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
     (randomCase(2): @switch) match {
       case 1 => (x - 1, y - 1) ::(x, y - 1) ::(x - 1, y) ::(x + 1, y) ::(x + 1, y + 1) ::(x, y + 1) :: Nil
@@ -126,4 +126,14 @@ trait Convexity extends ShapeControl {
       case _ => None
     }
   }
+}
+
+object Neighbourhood extends Enumeration {
+  val VonNeumann = Value("Von Neumann")
+  val NearestMoore = Value("Nearest Moore")
+  val FurtherMoore = Value("Further Moore")
+  val RandomMoore = Value("Random Moore")
+  val Moore = Value("Moore")
+  val Pentagonal = Value("Pentagonal")
+  val Hexagonal = Value("Hexagonal")
 }
