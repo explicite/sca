@@ -11,10 +11,10 @@ trait Space extends Neighbourhood {
   /**
    * Iteration over all cells in space
    *
-   * @param space space to iterate
+   * @param cells space to iterate
    * @return evaluated space
    */
-  def iterate(implicit space: Seq[Cell]): Seq[Cell]
+  def iterate(implicit cells: Seq[Cell]): Seq[Cell]
 
   def modify(modifier: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
     space map modifier
@@ -30,15 +30,21 @@ trait Space extends Neighbourhood {
   }
 }
 
+object Space extends Enumeration {
+  val CA = Value("CA")
+  val MC = Value("MC")
+  val SPX= Value("SPX")
+}
+
 abstract case class CASpace(width: Int, height: Int) extends Space {
   /**
    * Iteration over all cells in CA
    *
-   * @param space space to iterate
+   * @param cels space to iterate
    * @return evaluated space
    */
-  def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
-    space.map {
+  def iterate(implicit cels: Seq[Cell]): Seq[Cell] = {
+    cels.map {
       c => (c.value: @switch) match {
         case WHITE => c(value)
         case _ => c
@@ -47,31 +53,32 @@ abstract case class CASpace(width: Int, height: Int) extends Space {
   }
 }
 
-abstract case class MASpace(width: Int, height: Int) extends Space {
+abstract case class MCSpace(width: Int, height: Int) extends Space {
   /**
-   * Iteration over all cells in Monte Carlo
+   * Iteration over all cells in Monte Carlo. Consider only cells on grains boundary.
+   * Selection of a new orientation only from neighbors. Cell is randomly generated from (W-k)
+   * available cells, where k is a number of cells  already considerated in currently MC step.
    *
-   * @param space space to iterate
+   * @param cells space to iterate
    * @return evaluated space
    */
-  override def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
-    val states = space.map(_.value).distinct
-    val cells: scala.collection.mutable.ArrayBuffer[Cell] = space.asInstanceOf[scala.collection.mutable.ArrayBuffer[Cell]]
-    val cellsAfter: scala.collection.mutable.ArrayBuffer[Cell] = scala.collection.mutable.ArrayBuffer.empty
+  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
+    val toEvaluate = edges
+    val afterIterate = scala.collection.mutable.Seq(cells: _*)
 
-    var iteration = 0
-    while(iteration <= space.size) {
-      val before = RANDOM.shuffle(cells).head
-      cells.remove(before.y + (before.x * height))
+    for (cell <- toEvaluate) {
+      val neighbours = states(cell.x, cell.y)
+      val energyBefore = cell.energy(neighbours)
+      val newState = RANDOM.shuffle(neighbours).head
+      val cellAfter = Cell(cell.x, cell.y, newState)
+      val energyAfter = cellAfter.energy(neighbours)
 
-      // TODO
-      val after = Cell(before.x, before.y, RANDOM.shuffle(states).head)
-      cellsAfter(after.y + (after.x * height)) = after
-
-      iteration += 1
+      if (energyAfter < energyBefore) {
+        afterIterate(cell.y + (height * cell.x)) = cellAfter
+      }
     }
 
-    cellsAfter.toSeq
+    afterIterate.toSeq
   }
 }
 
@@ -79,10 +86,10 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
   /**
    * Iteration over all cells in SRX
    *
-   * @param space space to iterate
+   * @param cells space to iterate
    * @return evaluated space
    */
-  override def iterate(implicit space: Seq[Cell]): Seq[Cell] = ???
+  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = ???
 }
 
 object CASpaceFactory {
@@ -109,6 +116,34 @@ object CASpaceFactory {
         case Moore => new CASpace(width, height) with Periodic with Moore
         case Pentagonal => new CASpace(width, height) with Periodic with Pentagonal
         case Hexagonal => new CASpace(width, height) with Periodic with Hexagonal
+      }
+    }
+  }
+}
+
+object MCSpaceFactory {
+  import Boundaries._
+  import Neighbourhood._
+
+  def apply(width: Int, height: Int, boundaries: Boundaries.Value, neighbourhood: Neighbourhood.Value): Space = {
+    boundaries match {
+      case Absorbs => neighbourhood match {
+        case VonNeumann => new MCSpace(width, height) with Absorbs with VonNeumann
+        case NearestMoore => new MCSpace(width, height) with Absorbs with NearestMoore
+        case FurtherMoore => new MCSpace(width, height) with Absorbs with FurtherMoore
+        case RandomMoore => new MCSpace(width, height) with Absorbs with RandomMoore
+        case Moore => new MCSpace(width, height) with Absorbs with Moore
+        case Pentagonal => new MCSpace(width, height) with Absorbs with Pentagonal
+        case Hexagonal => new MCSpace(width, height) with Absorbs with Hexagonal
+      }
+      case Periodic => neighbourhood match {
+        case VonNeumann => new MCSpace(width, height) with Periodic with VonNeumann
+        case NearestMoore => new MCSpace(width, height) with Periodic with NearestMoore
+        case FurtherMoore => new MCSpace(width, height) with Periodic with FurtherMoore
+        case RandomMoore => new MCSpace(width, height) with Periodic with RandomMoore
+        case Moore => new MCSpace(width, height) with Periodic with Moore
+        case Pentagonal => new MCSpace(width, height) with Periodic with Pentagonal
+        case Hexagonal => new MCSpace(width, height) with Periodic with Hexagonal
       }
     }
   }

@@ -10,6 +10,7 @@ import javax.swing.UIManager
 import scala.swing._
 import Neighbourhood._
 import Boundaries._
+import Space._
 
 object App extends SwingApplication {
   val width = 500
@@ -42,17 +43,22 @@ object App extends SwingApplication {
   lazy val mcInitializeButton: Button = "apply"
   lazy val mcInitializeField: TextField = 0
   lazy val mcInitializeLabel: Label = "states"
+  lazy val mcIterationsButton: Button = "apply"
+  lazy val mcIterationsField: TextField = 0
+  lazy val mcIterationsLabel: Label = "iterations"
 
-  lazy val neighbourhoods: ComboBox[Neighbourhood.Value] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
-  lazy val boundaries: ComboBox[Boundaries.Value] = Absorbs :: Periodic :: Nil
+  lazy val neighbourhoodsBox: ComboBox[Neighbourhood.Value] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
+  lazy val boundariesBox: ComboBox[Boundaries.Value] = Absorbs :: Periodic :: Nil
+  lazy val spaceBox: ComboBox[Space.Value] = CA :: MC :: SPX :: Nil
 
-  lazy val mcMenu = new GridPanel(1, 3) {
-    contents ++= mcInitializeField :: mcInitializeLabel :: mcInitializeButton :: Nil
+  lazy val mcMenu = new GridPanel(2, 3) {
+    contents ++= mcInitializeField :: mcInitializeLabel :: mcInitializeButton ::
+      mcIterationsField :: mcIterationsLabel :: mcIterationsButton :: Nil
     border = "MC"
   }
 
   lazy val spaceMenu = new GridPanel(1, 2) {
-    contents ++= neighbourhoods :: boundaries :: Nil
+    contents ++= spaceBox :: neighbourhoodsBox :: boundariesBox :: Nil
     border = "space"
   }
 
@@ -94,16 +100,35 @@ object App extends SwingApplication {
       rectInclusionsButton,
       nucleationButton,
       mcInitializeButton,
-      neighbourhoods.selection,
-      boundaries.selection,
+      mcIterationsButton,
+      spaceBox.selection,
+      neighbourhoodsBox.selection,
+      boundariesBox.selection,
       canvas.mouse.clicks
     )
 
+    // TODO remove cascade match for combobox @see other todo's
     reactions += {
-      case SelectionChanged(`neighbourhoods`) =>
-        space = CASpaceFactory(width, height, boundaries.selection.item, neighbourhoods.selection.item)
-      case SelectionChanged(`boundaries`) =>
-        space = CASpaceFactory(width, height, boundaries.selection.item, neighbourhoods.selection.item)
+      case SelectionChanged(`spaceBox`) =>
+        spaceBox.selection.item match {
+          case CA => space = CASpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
+          case MC => space = MCSpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
+          case SPX => ???
+        }
+      case SelectionChanged(`neighbourhoodsBox`) =>
+        spaceBox.selection.item match {
+          case CA => space = CASpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
+          case MC => space = MCSpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
+          case SPX => ???
+        }
+      case SelectionChanged(`boundariesBox`) =>
+        spaceBox.selection.item match {
+          case CA => space = CASpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
+          case MC => space = MCSpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
+          case SPX => ???
+        }
+      case ButtonClicked(`mcIterationsButton`)=>
+        canvas.iterate(mcIterationsField)
       case ButtonClicked(`mcInitializeButton`) =>
         canvas.generate(mcInitializeField)
       case ButtonClicked(`iterate`) =>

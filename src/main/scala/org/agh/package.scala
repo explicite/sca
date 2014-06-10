@@ -41,6 +41,12 @@ package object agh {
     }
   }
 
+  implicit def SeqSpacesToComboBox(sq: Seq[Space.Value]): ComboBox[Space.Value] = {
+    new ComboBox(sq) {
+      renderer = Renderer(_.toString)
+    }
+  }
+
   implicit def StringToButton(s: String): Button = new Button(s)
 
   // random
@@ -63,6 +69,11 @@ package object agh {
     text = d.toString
     columns = 5
     horizontalAlignment = Alignment.Left
+  }
+
+  // sugar sync
+  implicit def intWithTimes(n: Int) = new {
+    def times(f: => Unit) = 1 to n foreach { _ => f}
   }
 
 }

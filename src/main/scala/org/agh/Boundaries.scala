@@ -28,6 +28,11 @@ abstract class Boundaries {
   }
 }
 
+object Boundaries extends Enumeration {
+  val Absorbs = Value("Absorbs")
+  val Periodic = Value("Periodic")
+}
+
 trait Periodic extends Boundaries {
   override def transforms(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)] = {
     coordinates map transform
@@ -50,9 +55,4 @@ trait Absorbs extends Boundaries {
       case (x, y) => x >= 0 && y >= 0 && x < width && y < height
     }
   }
-}
-
-object Boundaries extends Enumeration {
-  val Absorbs = Value("Absorbs")
-  val Periodic = Value("Periodic")
 }

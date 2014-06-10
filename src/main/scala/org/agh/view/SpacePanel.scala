@@ -48,6 +48,13 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     repaint()
   }
 
+  def iterate(ni: Int)(implicit space: Space) {
+    ni times {
+      cells = space.iterate
+    }
+    repaint()
+  }
+
   def onTheEdge(modify: Cell => Cell)(implicit space: Space) {
     cells = space.onTheEdge(modify)
     repaint()

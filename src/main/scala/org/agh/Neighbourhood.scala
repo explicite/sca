@@ -10,6 +10,7 @@ abstract class Neighbourhood
   protected val probability: Double
 
   def isEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
+    // TODO skip black
     val values = (transforms _ andThen evaluate)(milieu(x, y))
     val uniqueValues = values groupBy (_.getRGB)
 
@@ -17,6 +18,14 @@ abstract class Neighbourhood
       case 1 => false
       case _ => values.size != uniqueValues.size
     }
+  }
+
+  def edges(implicit space: Seq[Cell]): Seq[Cell] = {
+    space filter (cell => isEdge(cell.x, cell.y))
+  }
+
+  protected def states(x: Int, y: Int)(implicit space: Seq[Cell]): Seq[Color] = {
+    mutate(coordinates(x,y))
   }
 
   protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
@@ -28,6 +37,16 @@ abstract class Neighbourhood
   private def milieu(x: Int, y: Int): Seq[(Int, Int)] = {
     (x, y) ::(x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
   }
+}
+
+object Neighbourhood extends Enumeration {
+  val VonNeumann = Value("Von Neumann")
+  val NearestMoore = Value("Nearest Moore")
+  val FurtherMoore = Value("Further Moore")
+  val RandomMoore = Value("Random Moore")
+  val Moore = Value("Moore")
+  val Pentagonal = Value("Pentagonal")
+  val Hexagonal = Value("Hexagonal")
 }
 
 trait VonNeumann extends Neighbourhood with Concavity {
@@ -126,14 +145,4 @@ trait Convexity extends ShapeControl {
       case _ => None
     }
   }
-}
-
-object Neighbourhood extends Enumeration {
-  val VonNeumann = Value("Von Neumann")
-  val NearestMoore = Value("Nearest Moore")
-  val FurtherMoore = Value("Further Moore")
-  val RandomMoore = Value("Random Moore")
-  val Moore = Value("Moore")
-  val Pentagonal = Value("Pentagonal")
-  val Hexagonal = Value("Hexagonal")
 }

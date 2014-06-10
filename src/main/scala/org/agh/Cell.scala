@@ -12,6 +12,17 @@ case class Cell(x: Int, y: Int, value: Color) {
       case None => this
     }
   }
+
+  def energy(f: (Int, Int) => Seq[Color]): Int = {
+    energy(f(x, y))
+  }
+
+  def energy(s: Seq[Color]):Int = {
+    s.map {
+      case `value` => 0
+      case _ => 1
+    }.sum
+  }
 }
 
 object Cell {
