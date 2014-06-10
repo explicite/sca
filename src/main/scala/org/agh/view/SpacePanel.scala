@@ -12,6 +12,7 @@ import javax.swing.JComponent
 import scala.swing.Component
 import scala.concurrent._
 import java.awt.Color._
+import java.awt.Color
 import org.agh.Cell
 
 class SpacePanel(val width: Int, val height: Int, cellSize: Int)
@@ -113,10 +114,10 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   def setNucleation(numberOfSeeds: Int)(implicit space: Space): Unit = {
     implicit val spaceWithSeeds = scala.collection.mutable.Seq(cells: _*)
 
-    for(seed <- 0 until numberOfSeeds) {
+    for (seed <- 0 until numberOfSeeds) {
       randomCell match {
         case Cell(x, y, value) =>
-          spaceWithSeeds(y+(x*space.height)) = Cell(x, y, randomColor)
+          spaceWithSeeds(y + (x * space.height)) = Cell(x, y, randomColor)
       }
     }
 
@@ -150,6 +151,25 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     }
 
     cells = futures.map(c => Await.result(c, 100 milli))(breakOut)
+  }
+
+  def generate(numberOfStates: Int): Unit = {
+    val states: scala.collection.mutable.Set[Color] = scala.collection.mutable.Set.empty
+
+    while (states.size < numberOfStates) {
+      states += randomColor
+      states.remove(WHITE)
+      states.remove(BLACK)
+    }
+
+    val values = states.toSeq
+
+    cells = cells.map {
+      case Cell(x, y, WHITE) => Cell(x, y, RANDOM.shuffle(values).head)
+      case cell => cell
+    }
+
+    repaint()
   }
 
   private def empty(): Seq[Cell] = {

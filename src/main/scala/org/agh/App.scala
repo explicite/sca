@@ -15,7 +15,7 @@ object App extends SwingApplication {
   val width = 500
   val height = 500
   val cellSize = 1
-  implicit var space: Space = new CASpace(width, height) with RandomMoore with Periodic
+  implicit var space: Space = new CASpace(width, height) with VonNeumann with Absorbs
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
 
@@ -26,26 +26,33 @@ object App extends SwingApplication {
   lazy val active: Button = "remove active"
   lazy val inactive: Button = "remove inactive"
 
-  lazy val circleInclusionsButton: Button = "apply"
-  lazy val rectInclusionsButton: Button = "apply"
-
   lazy val nucleationButton: Button = "apply"
 
+  lazy val circleInclusionsButton: Button = "apply"
   lazy val circleInclusionsField: TextField = 0
-  lazy val rectInclusionsField: TextField = 0
-
   lazy val circleInclusionsLabel: Label = "circle"
+
+  lazy val rectInclusionsButton: Button = "apply"
+  lazy val rectInclusionsField: TextField = 0
   lazy val rectInclusionsLabel: Label = "rect"
 
   lazy val nucleationField: TextField = 0
   lazy val nucleationLabel: Label = "seeds"
 
-  lazy val neighbourhoods: ComboBox[Neighbourhood.Value] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
+  lazy val mcInitializeButton: Button = "apply"
+  lazy val mcInitializeField: TextField = 0
+  lazy val mcInitializeLabel: Label = "states"
 
+  lazy val neighbourhoods: ComboBox[Neighbourhood.Value] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
   lazy val boundaries: ComboBox[Boundaries.Value] = Absorbs :: Periodic :: Nil
 
+  lazy val mcMenu = new GridPanel(1, 3) {
+    contents ++= mcInitializeField :: mcInitializeLabel :: mcInitializeButton :: Nil
+    border = "MC"
+  }
+
   lazy val spaceMenu = new GridPanel(1, 2) {
-    contents ++= neighbourhoods :: boundaries:: Nil
+    contents ++= neighbourhoods :: boundaries :: Nil
     border = "space"
   }
 
@@ -66,7 +73,7 @@ object App extends SwingApplication {
   }
 
   lazy val menu = new BoxPanel(Vertical) {
-    contents ++= inclusionsMenu :: nucleationMenu :: spaceMenu  :: activity :: Nil
+    contents ++= inclusionsMenu :: nucleationMenu :: spaceMenu :: mcMenu :: activity :: Nil
     border = "menu"
   }
 
@@ -86,6 +93,7 @@ object App extends SwingApplication {
       circleInclusionsButton,
       rectInclusionsButton,
       nucleationButton,
+      mcInitializeButton,
       neighbourhoods.selection,
       boundaries.selection,
       canvas.mouse.clicks
@@ -96,6 +104,8 @@ object App extends SwingApplication {
         space = CASpaceFactory(width, height, boundaries.selection.item, neighbourhoods.selection.item)
       case SelectionChanged(`boundaries`) =>
         space = CASpaceFactory(width, height, boundaries.selection.item, neighbourhoods.selection.item)
+      case ButtonClicked(`mcInitializeButton`) =>
+        canvas.generate(mcInitializeField)
       case ButtonClicked(`iterate`) =>
         canvas.iterate
       case ButtonClicked(`edges`) =>

@@ -54,7 +54,25 @@ abstract case class MASpace(width: Int, height: Int) extends Space {
    * @param space space to iterate
    * @return evaluated space
    */
-  override def iterate(implicit space: Seq[Cell]): Seq[Cell] = ???
+  override def iterate(implicit space: Seq[Cell]): Seq[Cell] = {
+    val states = space.map(_.value).distinct
+    val cells: scala.collection.mutable.ArrayBuffer[Cell] = space.asInstanceOf[scala.collection.mutable.ArrayBuffer[Cell]]
+    val cellsAfter: scala.collection.mutable.ArrayBuffer[Cell] = scala.collection.mutable.ArrayBuffer.empty
+
+    var iteration = 0
+    while(iteration <= space.size) {
+      val before = RANDOM.shuffle(cells).head
+      cells.remove(before.y + (before.x * height))
+
+      // TODO
+      val after = Cell(before.x, before.y, RANDOM.shuffle(states).head)
+      cellsAfter(after.y + (after.x * height)) = after
+
+      iteration += 1
+    }
+
+    cellsAfter.toSeq
+  }
 }
 
 abstract case class SRXSpace(width: Int, height: Int) extends Space {

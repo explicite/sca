@@ -44,7 +44,7 @@ package object agh {
   implicit def StringToButton(s: String): Button = new Button(s)
 
   // random
-  private val RANDOM = new scala.util.Random()
+  val RANDOM = new scala.util.Random()
 
   def randomCase = (cases: Int) => RANDOM.nextInt(cases) + 1
 
