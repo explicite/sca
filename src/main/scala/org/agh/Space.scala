@@ -5,9 +5,6 @@ import java.awt.Color._
 
 // TODO functional approach eg. iterate(implicit seq)(n: seq=>seq)(b: seq=>seq): Seq
 trait Space extends Neighbourhood {
-  val permanent = BLACK :: WHITE :: Nil
-  val probability = 0.7d
-
   /**
    * Iteration over all cells in space
    *
@@ -30,21 +27,22 @@ trait Space extends Neighbourhood {
   }
 }
 
-object Space extends Enumeration {
-  val CA = Value("CA")
-  val MC = Value("MC")
-  val SPX= Value("SPX")
+object Space {
+  import scala.reflect.runtime.universe.typeOf
+  val CA = ("CASpace", typeOf[CASpace])
+  val MC = ("MCSpace", typeOf[MCSpace])
+  val SPX =("SRXSpace", typeOf[SRXSpace])
 }
 
 abstract case class CASpace(width: Int, height: Int) extends Space {
   /**
    * Iteration over all cells in CA
    *
-   * @param cels space to iterate
+   * @param cells space to iterate
    * @return evaluated space
    */
-  def iterate(implicit cels: Seq[Cell]): Seq[Cell] = {
-    cels.map {
+  def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
+    cells.map {
       c => (c.value: @switch) match {
         case WHITE => c(value)
         case _ => c
@@ -92,59 +90,24 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
   override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = ???
 }
 
-object CASpaceFactory {
+object SpaceFactory {
+  import scala.reflect.runtime.universe._
+  import scala.tools.reflect._
 
-  import Boundaries._
-  import Neighbourhood._
+  val toolbox = reflect.runtime.currentMirror.mkToolBox()
 
-  def apply(width: Int, height: Int, boundaries: Boundaries.Value, neighbourhood: Neighbourhood.Value): Space = {
-    boundaries match {
-      case Absorbs => neighbourhood match {
-        case VonNeumann => new CASpace(width, height) with Absorbs with VonNeumann
-        case NearestMoore => new CASpace(width, height) with Absorbs with NearestMoore
-        case FurtherMoore => new CASpace(width, height) with Absorbs with FurtherMoore
-        case RandomMoore => new CASpace(width, height) with Absorbs with RandomMoore
-        case Moore => new CASpace(width, height) with Absorbs with Moore
-        case Pentagonal => new CASpace(width, height) with Absorbs with Pentagonal
-        case Hexagonal => new CASpace(width, height) with Absorbs with Hexagonal
-      }
-      case Periodic => neighbourhood match {
-        case VonNeumann => new CASpace(width, height) with Periodic with VonNeumann
-        case NearestMoore => new CASpace(width, height) with Periodic with NearestMoore
-        case FurtherMoore => new CASpace(width, height) with Periodic with FurtherMoore
-        case RandomMoore => new CASpace(width, height) with Periodic with RandomMoore
-        case Moore => new CASpace(width, height) with Periodic with Moore
-        case Pentagonal => new CASpace(width, height) with Periodic with Pentagonal
-        case Hexagonal => new CASpace(width, height) with Periodic with Hexagonal
-      }
-    }
-  }
-}
+  /**
+   * Based on reflection [[org.agh.Space]] factory
+   *
+   * @param width space width
+   * @param height space height
+   * @param types ([[org.agh.Space]], [[org.agh.Neighbourhood]], [[org.agh.Boundaries]]])
+   * @return
+   */
+  def apply(width: Int, height: Int)(types: (Type, Type, Type)): Space = {
+    val (space, neighbours, boundaries) = types
+    val tree = q"new $space($width, $height) with $neighbours with $boundaries"
 
-object MCSpaceFactory {
-  import Boundaries._
-  import Neighbourhood._
-
-  def apply(width: Int, height: Int, boundaries: Boundaries.Value, neighbourhood: Neighbourhood.Value): Space = {
-    boundaries match {
-      case Absorbs => neighbourhood match {
-        case VonNeumann => new MCSpace(width, height) with Absorbs with VonNeumann
-        case NearestMoore => new MCSpace(width, height) with Absorbs with NearestMoore
-        case FurtherMoore => new MCSpace(width, height) with Absorbs with FurtherMoore
-        case RandomMoore => new MCSpace(width, height) with Absorbs with RandomMoore
-        case Moore => new MCSpace(width, height) with Absorbs with Moore
-        case Pentagonal => new MCSpace(width, height) with Absorbs with Pentagonal
-        case Hexagonal => new MCSpace(width, height) with Absorbs with Hexagonal
-      }
-      case Periodic => neighbourhood match {
-        case VonNeumann => new MCSpace(width, height) with Periodic with VonNeumann
-        case NearestMoore => new MCSpace(width, height) with Periodic with NearestMoore
-        case FurtherMoore => new MCSpace(width, height) with Periodic with FurtherMoore
-        case RandomMoore => new MCSpace(width, height) with Periodic with RandomMoore
-        case Moore => new MCSpace(width, height) with Periodic with Moore
-        case Pentagonal => new MCSpace(width, height) with Periodic with Pentagonal
-        case Hexagonal => new MCSpace(width, height) with Periodic with Hexagonal
-      }
-    }
+    toolbox.eval(tree).asInstanceOf[Space]
   }
 }

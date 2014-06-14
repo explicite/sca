@@ -7,7 +7,7 @@ abstract class Neighbourhood
   extends Boundaries
   with ShapeControl {
 
-  protected val probability: Double
+  protected val probability: Double = 0.7d
 
   def isEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
     // TODO skip black
@@ -40,13 +40,14 @@ abstract class Neighbourhood
 }
 
 object Neighbourhood extends Enumeration {
-  val VonNeumann = Value("Von Neumann")
-  val NearestMoore = Value("Nearest Moore")
-  val FurtherMoore = Value("Further Moore")
-  val RandomMoore = Value("Random Moore")
-  val Moore = Value("Moore")
-  val Pentagonal = Value("Pentagonal")
-  val Hexagonal = Value("Hexagonal")
+  import scala.reflect.runtime.universe.typeOf
+  val VonNeumann = ("Von Neumann", typeOf[VonNeumann])
+  val NearestMoore = ("Nearest Moore", typeOf[NearestMoore])
+  val FurtherMoore = ("Further Moore", typeOf[FurtherMoore])
+  val RandomMoore = ("Random Moore", typeOf[RandomMoore])
+  val Moore = ("Moore", typeOf[Moore])
+  val Pentagonal = ("Pentagonal", typeOf[Pentagonal])
+  val Hexagonal = ("Hexagonal", typeOf[Hexagonal])
 }
 
 trait VonNeumann extends Neighbourhood with Concavity {

@@ -1,22 +1,25 @@
 package org.agh
 
 import java.awt.event.MouseEvent.{BUTTON1 => LeftButton}
-import scala.swing.event.{SelectionChanged, MouseClicked, ButtonClicked}
-import scala.swing.event.Key.Modifier.Control
-import scala.swing.event.Key.Modifier.Shift
-import scala.swing.Orientation._
-import org.agh.view.SpacePanel
 import javax.swing.UIManager
+
+import org.agh.Boundaries._
+import org.agh.Neighbourhood._
+import org.agh.Space._
+import org.agh.view.SpacePanel
+
+import scala.swing.Orientation._
 import scala.swing._
-import Neighbourhood._
-import Boundaries._
-import Space._
+import scala.swing.event.Key.Modifier.{Control, Shift}
+import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
+import reflect.runtime.universe.Type
+
 
 object App extends SwingApplication {
   val width = 500
   val height = 500
   val cellSize = 1
-  implicit var space: Space = new CASpace(width, height) with VonNeumann with Absorbs
+  implicit var space: Space = SpaceFactory(width,height)(CA, VonNeumann, Absorbs)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
 
@@ -47,9 +50,9 @@ object App extends SwingApplication {
   lazy val mcIterationsField: TextField = 0
   lazy val mcIterationsLabel: Label = "iterations"
 
-  lazy val neighbourhoodsBox: ComboBox[Neighbourhood.Value] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
-  lazy val boundariesBox: ComboBox[Boundaries.Value] = Absorbs :: Periodic :: Nil
-  lazy val spaceBox: ComboBox[Space.Value] = CA :: MC :: SPX :: Nil
+  lazy val neighbourhoodsBox: ComboBox[(String, Type)] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
+  lazy val boundariesBox: ComboBox[(String, Type)] = Absorbs :: Periodic :: Nil
+  lazy val spaceBox: ComboBox[(String, Type)] = CA :: MC :: SPX :: Nil
 
   lazy val mcMenu = new GridPanel(2, 3) {
     contents ++= mcInitializeField :: mcInitializeLabel :: mcInitializeButton ::
@@ -107,27 +110,13 @@ object App extends SwingApplication {
       canvas.mouse.clicks
     )
 
-    // TODO remove cascade match for combobox @see other todo's
     reactions += {
-      case SelectionChanged(`spaceBox`) =>
-        spaceBox.selection.item match {
-          case CA => space = CASpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
-          case MC => space = MCSpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
-          case SPX => ???
-        }
-      case SelectionChanged(`neighbourhoodsBox`) =>
-        spaceBox.selection.item match {
-          case CA => space = CASpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
-          case MC => space = MCSpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
-          case SPX => ???
-        }
-      case SelectionChanged(`boundariesBox`) =>
-        spaceBox.selection.item match {
-          case CA => space = CASpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
-          case MC => space = MCSpaceFactory(width, height, boundariesBox.selection.item, neighbourhoodsBox.selection.item)
-          case SPX => ???
-        }
-      case ButtonClicked(`mcIterationsButton`)=>
+      case SelectionChanged(`spaceBox`) |
+           SelectionChanged(`neighbourhoodsBox`) |
+           SelectionChanged(`boundariesBox`) =>
+
+        space = SpaceFactory(width, height)(spaceBox,neighbourhoodsBox, boundariesBox)
+      case ButtonClicked(`mcIterationsButton`) =>
         canvas.iterate(mcIterationsField)
       case ButtonClicked(`mcInitializeButton`) =>
         canvas.generate(mcInitializeField)

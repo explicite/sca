@@ -138,28 +138,6 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     cells(point.y + (height * point.x))
   }
 
-  /**
-   * Generate space
-   *
-   * @param seeds number of nucleation cells
-   * @param inclusions number of inactive cells
-   */
-  def generate(seeds: Float = 1f, inclusions: Float = 1f): Unit = {
-    val futures = for {
-      x <- 0 until width
-      y <- 0 until height
-    } yield {
-      Future {
-        Cell(x, y, (randomFloat: @switch) match {
-          case x: Float if x > seeds => if (x > inclusions) BLACK else randomColor
-          case _ => WHITE
-        })
-      }
-    }
-
-    cells = futures.map(c => Await.result(c, 100 milli))(breakOut)
-  }
-
   def generate(numberOfStates: Int): Unit = {
     val states: scala.collection.mutable.Set[Color] = scala.collection.mutable.Set.empty
 

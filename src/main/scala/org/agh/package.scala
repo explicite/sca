@@ -1,5 +1,4 @@
 package org
-
 import scala.swing.{Button, Alignment, TextField, Label, ComboBox}
 import scala.language.implicitConversions
 import javax.swing.border.CompoundBorder
@@ -29,23 +28,15 @@ package object agh {
       BorderFactory.createEmptyBorder(5, 5, 5, 5))
   }
 
-  implicit def SeqNeighboursToComboBox(sq: Seq[Neighbourhood.Value]): ComboBox[Neighbourhood.Value] = {
+  implicit def SeqToComboBox[A](sq: Seq[(String, A)]): ComboBox[(String, A)] = {
     new ComboBox(sq) {
-      renderer = Renderer(_.toString)
+      renderer = Renderer(_._1)
     }
   }
 
-  implicit def SeqBoundariesToComboBox(sq: Seq[Boundaries.Value]): ComboBox[Boundaries.Value] = {
-    new ComboBox(sq) {
-      renderer = Renderer(_.toString)
-    }
-  }
-
-  implicit def SeqSpacesToComboBox(sq: Seq[Space.Value]): ComboBox[Space.Value] = {
-    new ComboBox(sq) {
-      renderer = Renderer(_.toString)
-    }
-  }
+  implicit def ComboBoxToValue[A](cb: ComboBox[(String, A)]): A = cb.selection.item._2
+  
+  implicit def ToupleToVal[A](t: (String, A)): A = t._2
 
   implicit def StringToButton(s: String): Button = new Button(s)
 

@@ -1,11 +1,12 @@
 package org.agh
 
 import java.awt.Color
+import java.awt.Color._
 
 abstract class Boundaries {
   val width: Int
   val height: Int
-  val permanent: Seq[Color]
+  val permanent: Seq[Color] = BLACK :: WHITE :: Nil
 
   def mutate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
     (transforms _ andThen removePermanent)(coordinates)
@@ -28,9 +29,10 @@ abstract class Boundaries {
   }
 }
 
-object Boundaries extends Enumeration {
-  val Absorbs = Value("Absorbs")
-  val Periodic = Value("Periodic")
+object Boundaries {
+  import scala.reflect.runtime.universe.typeOf
+  val Absorbs = ("Absorbs", typeOf[Absorbs])
+  val Periodic = ("Periodic", typeOf[Periodic])
 }
 
 trait Periodic extends Boundaries {
