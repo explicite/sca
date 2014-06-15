@@ -1,7 +1,8 @@
 package org.agh
 
-import scala.annotation.switch
 import java.awt.Color
+
+import scala.annotation.switch
 
 abstract class Neighbourhood
   extends Boundaries
@@ -9,8 +10,9 @@ abstract class Neighbourhood
 
   protected val probability: Double = 0.7d
 
-  def isEdge(x: Int, y: Int)(implicit space: Seq[Cell]): Boolean = {
+  def isEdge(coordinate: (Int, Int))(implicit space: Seq[Cell]): Boolean = {
     // TODO skip black
+    val (x, y) = coordinate
     val values = (transforms _ andThen evaluate)(milieu(x, y))
     val uniqueValues = values groupBy (_.getRGB)
 
@@ -25,7 +27,7 @@ abstract class Neighbourhood
   }
 
   protected def states(x: Int, y: Int)(implicit space: Seq[Cell]): Seq[Color] = {
-    mutate(coordinates(x,y))
+    mutate(coordinates(x, y))
   }
 
   protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
@@ -40,7 +42,9 @@ abstract class Neighbourhood
 }
 
 object Neighbourhood extends Enumeration {
+
   import scala.reflect.runtime.universe.typeOf
+
   val VonNeumann = ("Von Neumann", typeOf[VonNeumann])
   val NearestMoore = ("Nearest Moore", typeOf[NearestMoore])
   val FurtherMoore = ("Further Moore", typeOf[FurtherMoore])

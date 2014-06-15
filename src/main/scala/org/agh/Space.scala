@@ -1,10 +1,16 @@
 package org.agh
 
-import scala.annotation._
+import java.awt.Color
 import java.awt.Color._
 
+import scala.annotation._
+import scala.collection._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+
 // TODO functional approach eg. iterate(implicit seq)(n: seq=>seq)(b: seq=>seq): Seq
-trait Space extends Neighbourhood {
+trait Space extends Neighbourhood with Energy {
   /**
    * Iteration over all cells in space
    *
@@ -27,11 +33,39 @@ trait Space extends Neighbourhood {
   }
 }
 
+trait Energy {
+  def ei(states: Seq[Color], oldState: Color, newState: Color): Double = {
+    val afterEnergy = states.map { state => en(states, newState)}
+    val beforeEnergy = states.map { state => en(states, oldState)}
+
+    (afterEnergy zip beforeEnergy).map {
+      case (after, before) =>
+        math.exp(-(after - before) / 0.6)
+    }.sum
+  }
+
+  def en(s: Seq[Color], c: Color): Double = {
+    s.map {
+      case `c` => 0.0
+      case _ => 1.0
+    }.sum
+  }
+
+  def value(Δe: Double): Double = {
+    if (Δe > 0)
+      math.exp(-Δe / 0.6)
+    else
+      1
+  }
+}
+
 object Space {
+
   import scala.reflect.runtime.universe.typeOf
+
   val CA = ("CASpace", typeOf[CASpace])
   val MC = ("MCSpace", typeOf[MCSpace])
-  val SPX =("SRXSpace", typeOf[SRXSpace])
+  val SPX = ("SRXSpace", typeOf[SRXSpace])
 }
 
 abstract case class CASpace(width: Int, height: Int) extends Space {
@@ -61,22 +95,28 @@ abstract case class MCSpace(width: Int, height: Int) extends Space {
    * @return evaluated space
    */
   override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-    val toEvaluate = edges
-    val afterIterate = scala.collection.mutable.Seq(cells: _*)
+    val futures = cells.map {
+      cell =>
+        Future {
+          if (isEdge(cell)) {
+            val ss = states(cell.x, cell.y)
+            val beforeState = cell.value
+            val afterState = RANDOM.shuffle(ss).head
+            val beforeEnergy = en(ss, beforeState)
+            val afterEnergy = en(ss, afterState)
 
-    for (cell <- toEvaluate) {
-      val neighbours = states(cell.x, cell.y)
-      val energyBefore = cell.energy(neighbours)
-      val newState = RANDOM.shuffle(neighbours).head
-      val cellAfter = Cell(cell.x, cell.y, newState)
-      val energyAfter = cellAfter.energy(neighbours)
-
-      if (energyAfter < energyBefore) {
-        afterIterate(cell.y + (height * cell.x)) = cellAfter
-      }
+            if (afterEnergy - beforeEnergy <= 0) {
+              Cell(cell.x, cell.y, afterState)
+            } else {
+              cell
+            }
+          } else {
+            cell
+          }
+        }
     }
 
-    afterIterate.toSeq
+    futures.map(c => Await.result(c, 500 milli))(breakOut)
   }
 }
 
@@ -91,6 +131,7 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
 }
 
 object SpaceFactory {
+
   import scala.reflect.runtime.universe._
   import scala.tools.reflect._
 

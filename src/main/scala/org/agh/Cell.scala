@@ -1,7 +1,7 @@
 package org.agh
 
-import java.awt.Color._
 import java.awt.Color
+import java.awt.Color._
 
 case class Cell(x: Int, y: Int, value: Color) {
   def apply(f: (Int, Int) => Option[Color]): Cell = {
@@ -11,17 +11,6 @@ case class Cell(x: Int, y: Int, value: Color) {
       case Some(color) => Cell(x, y, color)
       case None => this
     }
-  }
-
-  def energy(f: (Int, Int) => Seq[Color]): Int = {
-    energy(f(x, y))
-  }
-
-  def energy(s: Seq[Color]):Int = {
-    s.map {
-      case `value` => 0
-      case _ => 1
-    }.sum
   }
 }
 

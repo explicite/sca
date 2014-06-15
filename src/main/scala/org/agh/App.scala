@@ -8,18 +8,20 @@ import org.agh.Neighbourhood._
 import org.agh.Space._
 import org.agh.view.SpacePanel
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.reflect.runtime.universe.Type
 import scala.swing.Orientation._
 import scala.swing._
 import scala.swing.event.Key.Modifier.{Control, Shift}
 import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
-import reflect.runtime.universe.Type
 
 
 object App extends SwingApplication {
-  val width = 500
-  val height = 500
+  val width = 400
+  val height = 400
   val cellSize = 1
-  implicit var space: Space = SpaceFactory(width,height)(CA, VonNeumann, Absorbs)
+  implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
 
@@ -115,13 +117,13 @@ object App extends SwingApplication {
            SelectionChanged(`neighbourhoodsBox`) |
            SelectionChanged(`boundariesBox`) =>
 
-        space = SpaceFactory(width, height)(spaceBox,neighbourhoodsBox, boundariesBox)
+        space = SpaceFactory(width, height)(spaceBox, neighbourhoodsBox, boundariesBox)
       case ButtonClicked(`mcIterationsButton`) =>
-        canvas.iterate(mcIterationsField)
+        Future {canvas.iterate(mcIterationsField)}
       case ButtonClicked(`mcInitializeButton`) =>
         canvas.generate(mcInitializeField)
       case ButtonClicked(`iterate`) =>
-        canvas.iterate
+        canvas.iterate(1)
       case ButtonClicked(`edges`) =>
         canvas.onTheEdge((c: Cell) => Cell(c.x, c.y))
       case ButtonClicked(`active`) =>

@@ -7,13 +7,11 @@ import scala.swing.event.MouseClicked
 import scala.concurrent.duration._
 import scala.collection.breakOut
 import scala.language.postfixOps
-import scala.annotation.switch
 import javax.swing.JComponent
 import scala.swing.Component
 import scala.concurrent._
 import java.awt.Color._
 import java.awt.Color
-import org.agh.Cell
 
 class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   extends Component
@@ -43,16 +41,14 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     }
   }
 
-  def iterate(implicit space: Space) {
-    cells = space.iterate
-    repaint()
-  }
-
-  def iterate(ni: Int)(implicit space: Space) {
-    ni times {
+  def iterate(ni: Int = 0)(implicit space: Space) {
+    if(ni == 0)
+      println("END")
+    else {
       cells = space.iterate
+      repaint()
+      iterate(ni - 1)
     }
-    repaint()
   }
 
   def onTheEdge(modify: Cell => Cell)(implicit space: Space) {
@@ -69,7 +65,6 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       }
     }
     cells = space.modify(modifier)
-
     repaint()
   }
 
