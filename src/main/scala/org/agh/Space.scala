@@ -98,16 +98,20 @@ abstract case class MCSpace(width: Int, height: Int) extends Space {
     val futures = cells.map {
       cell =>
         Future {
-          if (isEdge(cell)) {
+          if (isEdge(cell) && cell.value != BLACK) {
             val ss = states(cell.x, cell.y)
-            val beforeState = cell.value
-            val afterState = RANDOM.shuffle(ss).head
-            val beforeEnergy = en(ss, beforeState)
-            val afterEnergy = en(ss, afterState)
+            if(ss.nonEmpty) {
+              val beforeState = cell.value
+              val afterState = RANDOM.shuffle(ss).head
+              val beforeEnergy = en(ss, beforeState)
+              val afterEnergy = en(ss, afterState)
 
-            if (afterEnergy - beforeEnergy <= 0) {
-              Cell(cell.x, cell.y, afterState)
-            } else {
+              if (afterEnergy - beforeEnergy <= 0) {
+                Cell(cell.x, cell.y, afterState)
+              } else {
+                cell
+              }
+            }else {
               cell
             }
           } else {
