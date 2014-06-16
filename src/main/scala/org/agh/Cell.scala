@@ -7,12 +7,8 @@ import scala.collection.Seq
 
 case class Cell(x: Int, y: Int,
                 value: Color,
-                energy: Double = 0) extends Energy {
-
-  val recrystallized = value match {
-    case WHITE => false
-    case _ => true
-  }
+                energy: Double = 0,
+                recrystallized: Boolean = false) extends Energy {
 
   val active = value match {
     case BLACK => false
@@ -46,24 +42,22 @@ case class Cell(x: Int, y: Int,
     }
   }
 
-  def applySRX(states: Seq[Color]): Cell = {
-    val beforeState = value
-    val afterState = RANDOM.shuffle(states).head
-    val beforeEnergy = (energy(states, beforeState) * 0.5) + energy
-    val afterEnergy = energy(states, afterState) * 0.5
+  def applySRX(states: Seq[Cell]): Cell = {
+    if (states.nonEmpty) {
+      val afterState = RANDOM.shuffle(states).head
+      val beforeEnergy = (energy(states, this) * 0.5) + energy
+      val afterEnergy = energy(states, afterState) * 0.5
 
-    if (afterEnergy - beforeEnergy <= 0) {
-      Cell(x, y, afterState)
-    } else {
-      this
-    }
+      if (afterEnergy - beforeEnergy <= 0) afterState else this
+
+    } else this
   }
 
-  def +(eng: Double): Cell = Cell(x, y, value, energy + eng)
+  def +(eng: Double): Cell = Cell(x, y, value, energy + eng, recrystallized)
 
-  def -(eng: Double): Cell = Cell(x, y, value, energy - eng)
+  def -(eng: Double): Cell = Cell(x, y, value, energy - eng, recrystallized)
 
-  def ~(c: Color): Cell = Cell(x, y, c, energy)
+  def ~(c: Color): Cell = Cell(x, y, c, energy, recrystallized)
 
 }
 
@@ -79,5 +73,9 @@ trait Energy {
       case `c` => 0.0
       case _ => 1.0
     }.sum
+  }
+
+  def energy(s: Seq[Cell], c: Cell): Double = {
+    ???
   }
 }

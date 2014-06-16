@@ -89,7 +89,7 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
       cell => (cell.value: @switch) match {
         case BLACK => cell
         case _ => edge(cell) match {
-          case true => cell.applySRX(states(cell))
+          case true => cell.applySRX(neighbours(cell) filterNot (_.recrystallized))
           case _ => cell
         }
       }
