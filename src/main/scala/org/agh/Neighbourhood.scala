@@ -10,8 +10,7 @@ abstract class Neighbourhood
 
   protected val probability: Double = 0.7d
 
-  def isEdge(coordinate: (Int, Int))(implicit space: Seq[Cell]): Boolean = {
-    // TODO skip black
+  def edge(coordinate: (Int, Int))(implicit space: Seq[Cell]): Boolean = {
     val (x, y) = coordinate
     val values = (transforms _ andThen evaluate)(milieu(x, y))
     val uniqueValues = values groupBy (_.getRGB)
@@ -23,21 +22,27 @@ abstract class Neighbourhood
   }
 
   def edges(implicit space: Seq[Cell]): Seq[Cell] = {
-    space filter (cell => isEdge(cell.x, cell.y))
+    space filter (cell => edge(cell.x, cell.y))
   }
 
-  protected def states(x: Int, y: Int)(implicit space: Seq[Cell]): Seq[Color] = {
-    mutate(coordinates(x, y))
+  protected def states(coordinate: (Int, Int))(implicit space: Seq[Cell]): Seq[Color] = {
+    val (x, y) = coordinate
+    mutate(coordinates(x, y)) map toColor
   }
 
   protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    (mutate _ andThen expand)(coordinates(x, y))
+    (mutate _ andThen mapToColor  andThen expand)(coordinates(x, y))
   }
 
   protected def coordinates(x: Int, y: Int): Seq[(Int, Int)]
 
   private def milieu(x: Int, y: Int): Seq[(Int, Int)] = {
     (x, y) ::(x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
+  }
+
+  def neighbours(coordinate: (Int, Int))(implicit space: Seq[Cell]): Seq[Cell] = {
+    val (x, y) = coordinate
+    mutate(coordinates(x, y))
   }
 }
 

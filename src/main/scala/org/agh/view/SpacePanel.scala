@@ -1,17 +1,17 @@
 package org.agh
 package view
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.awt.{Dimension, Graphics}
-import scala.swing.event.MouseClicked
-import scala.concurrent.duration._
-import scala.collection.breakOut
-import scala.language.postfixOps
-import javax.swing.JComponent
-import scala.swing.Component
-import scala.concurrent._
 import java.awt.Color._
-import java.awt.Color
+import java.awt.{Color, Dimension, Graphics}
+import javax.swing.JComponent
+
+import scala.collection.breakOut
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
+import scala.concurrent.duration._
+import scala.language.postfixOps
+import scala.swing.Component
+import scala.swing.event.MouseClicked
 
 class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   extends Component
@@ -42,7 +42,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   }
 
   def iterate(ni: Int = 0)(implicit space: Space) {
-    if(ni == 0)
+    if (ni == 0)
       println("END")
     else {
       cells = space.iterate
@@ -118,8 +118,8 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
 
     for (seed <- 0 until numberOfSeeds) {
       randomCell match {
-        case Cell(x, y, value) =>
-          spaceWithSeeds(y + (x * space.height)) = Cell(x, y, randomColor)
+        case cell =>
+          spaceWithSeeds(cell.y + (cell.x * space.height)) = cell ~ randomColor
       }
     }
 
@@ -145,8 +145,11 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     val values = states.toSeq
 
     cells = cells.map {
-      case Cell(x, y, WHITE) => Cell(x, y, RANDOM.shuffle(values).head)
-      case cell => cell
+      cell =>
+        cell.value match {
+          case WHITE => cell ~ RANDOM.shuffle(values).head
+          case _ => cell
+        }
     }
 
     repaint()

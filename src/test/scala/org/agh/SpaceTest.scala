@@ -1,9 +1,10 @@
 package org.agh
 
-import org.scalatest.{FunSuite, Matchers}
 import java.awt.Color._
 
-class SpaceTest extends FunSuite with Matchers  {
+import org.scalatest.{FunSuite, Matchers}
+
+class SpaceTest extends FunSuite with Matchers {
   val width: Int = 10
   val height: Int = 20
 
@@ -13,7 +14,7 @@ class SpaceTest extends FunSuite with Matchers  {
     Cell(2, 0, WHITE), Cell(2, 1, WHITE), Cell(2, 2, WHITE))
 
   test("Von Neumann with absorbs") {
-    val space = new CASpace(3, 3) with VonNeumann with Absorbs
+    val space = new CASpace(3, 3) with VonNeumann with Absorbs with Constant
     space iterate testSpace map (_.value) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
       RED, RED, WHITE,
@@ -21,7 +22,7 @@ class SpaceTest extends FunSuite with Matchers  {
   }
 
   test("Von Neumann with periodic") {
-    val space = new CASpace(3, 3) with VonNeumann with Periodic
+    val space = new CASpace(3, 3) with VonNeumann with Periodic with Constant
     space iterate testSpace map (_.value) should contain theSameElementsAs Seq(
       RED, WHITE, WHITE,
       RED, RED, RED,
@@ -29,7 +30,7 @@ class SpaceTest extends FunSuite with Matchers  {
   }
 
   test("Neares Moore with absorbs") {
-    val space = new CASpace(3, 3) with NearestMoore with Absorbs
+    val space = new CASpace(3, 3) with NearestMoore with Absorbs with Constant
 
     val s1 = Seq(
       Cell(0, 0, WHITE), Cell(0, 1, RED), Cell(0, 2, WHITE),
@@ -81,7 +82,7 @@ class SpaceTest extends FunSuite with Matchers  {
   }
 
   test("Further Moore with absorbs") {
-    val space = new CASpace(3, 3) with FurtherMoore with Absorbs
+    val space = new CASpace(3, 3) with FurtherMoore with Absorbs with Constant
 
     val s1 = Seq(
       Cell(0, 0, RED), Cell(0, 1, WHITE), Cell(0, 2, RED),
@@ -129,7 +130,7 @@ class SpaceTest extends FunSuite with Matchers  {
   }
 
   test("Moore with absorbs") {
-    val space = new CASpace(3, 3) with Moore with Absorbs
+    val space = new CASpace(3, 3) with Moore with Absorbs with Constant
     space iterate testSpace map (_.value) should contain theSameElementsAs Seq(
       RED, RED, WHITE,
       RED, RED, WHITE,
@@ -137,7 +138,7 @@ class SpaceTest extends FunSuite with Matchers  {
   }
 
   test("Moore with periodic") {
-    val space = new CASpace(3, 3) with Moore with Periodic
+    val space = new CASpace(3, 3) with Moore with Periodic with Constant
     space iterate testSpace map (_.value) should contain theSameElementsAs Seq(
       RED, RED, RED,
       RED, RED, RED,
@@ -145,15 +146,15 @@ class SpaceTest extends FunSuite with Matchers  {
   }
 
   test("Identification cells on the edge") {
-    val space = new CASpace(3, 3) with Moore with Absorbs
-    space.isEdge(0,0)(testSpace) shouldBe true
-    space.isEdge(0,1)(testSpace) shouldBe true
-    space.isEdge(0,2)(testSpace) shouldBe false
-    space.isEdge(1,0)(testSpace) shouldBe true
-    space.isEdge(1,1)(testSpace) shouldBe true
-    space.isEdge(1,2)(testSpace) shouldBe false
-    space.isEdge(2,0)(testSpace) shouldBe true
-    space.isEdge(2,1)(testSpace) shouldBe true
-    space.isEdge(2,2)(testSpace) shouldBe false
+    val space = new CASpace(3, 3) with Moore with Absorbs with Constant
+    space.edge(0, 0)(testSpace) shouldBe true
+    space.edge(0, 1)(testSpace) shouldBe true
+    space.edge(0, 2)(testSpace) shouldBe false
+    space.edge(1, 0)(testSpace) shouldBe true
+    space.edge(1, 1)(testSpace) shouldBe true
+    space.edge(1, 2)(testSpace) shouldBe false
+    space.edge(2, 0)(testSpace) shouldBe true
+    space.edge(2, 1)(testSpace) shouldBe true
+    space.edge(2, 2)(testSpace) shouldBe false
   }
 }

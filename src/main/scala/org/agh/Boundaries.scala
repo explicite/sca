@@ -1,38 +1,44 @@
 package org.agh
 
 import java.awt.Color
-import java.awt.Color._
 
 abstract class Boundaries {
   val width: Int
   val height: Int
-  val permanent: Seq[Color] = BLACK :: WHITE :: Nil
 
-  def mutate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
-    (transforms _ andThen removePermanent)(coordinates)
+  def mutate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+    (transforms _ andThen evaluate)(coordinates)
   }
 
   def transforms(coordinates: Seq[(Int, Int)]): Seq[(Int, Int)]
 
-  def removePermanent(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
-    def predicate(c: Color): Boolean = !permanent.contains(c)
-    evaluate(coordinates) filter predicate
+  def evaluate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Cell] = {
+    coordinates map toCell filter permanent
   }
-  
-  def evaluate(coordinates: Seq[(Int, Int)])(implicit space: Seq[Cell]): Seq[Color] = {
-    def toColor(coordinate: (Int, Int))(implicit space: Seq[Cell]): Color = {
-      coordinate match {
-        case (x, y) => space(y + (height * x))
-      }
+
+  def toCell(coordinate: (Int, Int))(implicit space: Seq[Cell]): Cell = {
+    coordinate match {
+      case (x, y) => space(y + (height * x))
     }
-    coordinates map toColor
+  }
+
+  def toColor(c: Cell): Color = c.value
+
+  def mapToColor(cells: Seq[Cell]): Seq[Color]= cells map toColor
+
+  def permanent(cell: Cell): Boolean = {
+    !cell.permanent
   }
 }
 
 object Boundaries {
+
   import scala.reflect.runtime.universe.typeOf
+
   val Absorbs = ("Absorbs", typeOf[Absorbs])
   val Periodic = ("Periodic", typeOf[Periodic])
+
+
 }
 
 trait Periodic extends Boundaries {

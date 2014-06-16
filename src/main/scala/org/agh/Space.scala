@@ -1,16 +1,12 @@
 package org.agh
 
-import java.awt.Color
 import java.awt.Color._
 
 import scala.annotation._
 import scala.collection._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 // TODO functional approach eg. iterate(implicit seq)(n: seq=>seq)(b: seq=>seq): Seq
-trait Space extends Neighbourhood with Energy {
+trait Space extends Neighbourhood with Nucleation with Distribution {
   /**
    * Iteration over all cells in space
    *
@@ -25,37 +21,11 @@ trait Space extends Neighbourhood with Energy {
 
   def onTheEdge(modify: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
     space.map {
-      case cell => isEdge(cell.x, cell.y) match {
+      case cell => edge(cell.x, cell.y) match {
         case true => modify(cell)
         case false => cell
       }
     }
-  }
-}
-
-trait Energy {
-  def ei(states: Seq[Color], oldState: Color, newState: Color): Double = {
-    val afterEnergy = states.map { state => en(states, newState)}
-    val beforeEnergy = states.map { state => en(states, oldState)}
-
-    (afterEnergy zip beforeEnergy).map {
-      case (after, before) =>
-        math.exp(-(after - before) / 0.6)
-    }.sum
-  }
-
-  def en(s: Seq[Color], c: Color): Double = {
-    s.map {
-      case `c` => 0.0
-      case _ => 1.0
-    }.sum
-  }
-
-  def value(Δe: Double): Double = {
-    if (Δe > 0)
-      math.exp(-Δe / 0.6)
-    else
-      1
   }
 }
 
@@ -95,32 +65,15 @@ abstract case class MCSpace(width: Int, height: Int) extends Space {
    * @return evaluated space
    */
   override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-    val futures = cells.map {
-      cell =>
-        Future {
-          if (isEdge(cell) && cell.value != BLACK) {
-            val ss = states(cell.x, cell.y)
-            if(ss.nonEmpty) {
-              val beforeState = cell.value
-              val afterState = RANDOM.shuffle(ss).head
-              val beforeEnergy = en(ss, beforeState)
-              val afterEnergy = en(ss, afterState)
-
-              if (afterEnergy - beforeEnergy <= 0) {
-                Cell(cell.x, cell.y, afterState)
-              } else {
-                cell
-              }
-            }else {
-              cell
-            }
-          } else {
-            cell
-          }
+    cells.par.map {
+      cell => (cell.value: @switch) match {
+        case BLACK => cell
+        case _ => edge(cell) match {
+          case true => cell.applyMC(states(cell))
+          case _ => cell
         }
-    }
-
-    futures.map(c => Await.result(c, 500 milli))(breakOut)
+      }
+    }.seq
   }
 }
 
@@ -131,7 +84,17 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
    * @param cells space to iterate
    * @return evaluated space
    */
-  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = ???
+  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
+    nucleation.par.map {
+      cell => (cell.value: @switch) match {
+        case BLACK => cell
+        case _ => edge(cell) match {
+          case true => cell.applySRX(states(cell))
+          case _ => cell
+        }
+      }
+    }.seq
+  }
 }
 
 object SpaceFactory {
@@ -146,12 +109,12 @@ object SpaceFactory {
    *
    * @param width space width
    * @param height space height
-   * @param types ([[org.agh.Space]], [[org.agh.Neighbourhood]], [[org.agh.Boundaries]]])
+   * @param types ([[org.agh.Space]], [[org.agh.Neighbourhood]], [[org.agh.Boundaries]], [[org.agh.Nucleation]], [[org.agh.Distribution]])
    * @return
    */
-  def apply(width: Int, height: Int)(types: (Type, Type, Type)): Space = {
-    val (space, neighbours, boundaries) = types
-    val tree = q"new $space($width, $height) with $neighbours with $boundaries"
+  def apply(width: Int, height: Int)(types: (Type, Type, Type, Type, Type)): Space = {
+    val (space, neighbours, boundaries, nucleation, distribution) = types
+    val tree = q"new $space($width, $height) with $neighbours with $boundaries with $nucleation with $distribution"
 
     toolbox.eval(tree).asInstanceOf[Space]
   }

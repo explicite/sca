@@ -4,7 +4,9 @@ import java.awt.event.MouseEvent.{BUTTON1 => LeftButton}
 import javax.swing.UIManager
 
 import org.agh.Boundaries._
+import org.agh.Distribution._
 import org.agh.Neighbourhood._
+import org.agh.Nucleation._
 import org.agh.Space._
 import org.agh.view.SpacePanel
 
@@ -21,7 +23,7 @@ object App extends SwingApplication {
   val width = 400
   val height = 400
   val cellSize = 1
-  implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs)
+  implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Constant, Homogenous)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
 
@@ -55,7 +57,13 @@ object App extends SwingApplication {
   lazy val neighbourhoodsBox: ComboBox[(String, Type)] = VonNeumann :: NearestMoore :: FurtherMoore :: RandomMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
   lazy val boundariesBox: ComboBox[(String, Type)] = Absorbs :: Periodic :: Nil
   lazy val spaceBox: ComboBox[(String, Type)] = CA :: MC :: SPX :: Nil
+  lazy val nucleationBox: ComboBox[(String, Type)] = Constant :: Increasing :: Decreasing :: Nil
+  lazy val distributionBox: ComboBox[(String, Type)] = Heterogenous :: Homogenous :: Nil
 
+  lazy val srxMenu = new GridPanel(2, 3) {
+
+    border = "SRX"
+  }
   lazy val mcMenu = new GridPanel(2, 3) {
     contents ++= mcInitializeField :: mcInitializeLabel :: mcInitializeButton ::
       mcIterationsField :: mcIterationsLabel :: mcIterationsButton :: Nil
@@ -117,9 +125,11 @@ object App extends SwingApplication {
            SelectionChanged(`neighbourhoodsBox`) |
            SelectionChanged(`boundariesBox`) =>
 
-        space = SpaceFactory(width, height)(spaceBox, neighbourhoodsBox, boundariesBox)
+        space = SpaceFactory(width, height)(spaceBox, neighbourhoodsBox, boundariesBox, nucleationBox, distributionBox)
       case ButtonClicked(`mcIterationsButton`) =>
-        Future {canvas.iterate(mcIterationsField)}
+        Future {
+          canvas.iterate(mcIterationsField)
+        }
       case ButtonClicked(`mcInitializeButton`) =>
         canvas.generate(mcInitializeField)
       case ButtonClicked(`iterate`) =>
