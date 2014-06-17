@@ -92,7 +92,7 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
         case BLACK => cell
         case _ =>
           if(edge(cell) && !cell.recrystallized)
-            cell.applySRX(neighbours(cell) filterNot (_.recrystallized))
+            cell.applySRX(neighbours(cell) filter (_.recrystallized))
           else cell
       }
     }.seq

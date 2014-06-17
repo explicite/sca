@@ -20,9 +20,9 @@ import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 
 object App extends SwingApplication {
-  val width = 400
-  val height = 400
-  val cellSize = 1
+  val width = 100
+  val height = 100
+  val cellSize = 5
   implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Constant, Homogenous)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
