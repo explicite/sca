@@ -48,7 +48,7 @@ case class Cell(x: Int, y: Int,
       val beforeEnergy = (energy(states, this) * 0.5) + energy
       val afterEnergy = energy(states, afterState) * 0.5
 
-      if (afterEnergy - beforeEnergy <= 0) afterState else this
+      if (afterEnergy - beforeEnergy <= 0) afterState ~ true else this
 
     } else this
   }
@@ -58,6 +58,8 @@ case class Cell(x: Int, y: Int,
   def -(eng: Double): Cell = Cell(x, y, value, energy - eng, recrystallized)
 
   def ~(c: Color): Cell = Cell(x, y, c, energy, recrystallized)
+
+  def ~(b: Boolean): Cell = Cell(x, y, value, energy, b)
 
 }
 
@@ -76,6 +78,7 @@ trait Energy {
   }
 
   def energy(s: Seq[Cell], c: Cell): Double = {
-    ???
+    val state = s.filterNot(_.recrystallized).map(_.value)
+    energy(state, c)
   }
 }

@@ -14,13 +14,19 @@ object Nucleation {
 }
 
 trait Constant extends Nucleation {
-  def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = cells
+  def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = {
+    insert(100)
+  }
 }
 
 trait Increasing extends Nucleation {
-  def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = cells
+  def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = {
+    insert(100)
+  }
 }
 
 trait Decreasing extends Nucleation {
-  def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = cells
+  def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = {
+    insert(100)
+  }
 }

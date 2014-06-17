@@ -1,11 +1,13 @@
 package org
-import scala.swing.{Button, Alignment, TextField, Label, ComboBox}
-import scala.language.implicitConversions
-import javax.swing.border.CompoundBorder
-import scala.swing.ListView.Renderer
-import javax.swing.BorderFactory
-import java.awt.Color._
+
 import java.awt.Color
+import java.awt.Color._
+import javax.swing.BorderFactory
+import javax.swing.border.CompoundBorder
+
+import scala.language.implicitConversions
+import scala.swing.ListView.Renderer
+import scala.swing.{Alignment, Button, ComboBox, Label, TextField}
 
 package object agh {
 
@@ -35,7 +37,7 @@ package object agh {
   }
 
   implicit def ComboBoxToValue[A](cb: ComboBox[(String, A)]): A = cb.selection.item._2
-  
+
   implicit def ToupleToVal[A](t: (String, A)): A = t._2
 
   implicit def StringToButton(s: String): Button = new Button(s)
@@ -62,4 +64,18 @@ package object agh {
     horizontalAlignment = Alignment.Left
   }
 
+  def swap(cell: Cell)(space: scala.collection.mutable.Seq[Cell]) = {
+    val index = space.indexWhere(c => cell.x == c.x && cell.y == c.y)
+    space(index) = cell
+  }
+
+  def update(cells: Seq[Cell])(implicit space: Seq[Cell]): Seq[Cell] ={
+    val mspace = scala.collection.mutable.Seq[Cell](space:_*)
+
+    cells.foreach{
+      cell => swap(cell)(mspace)
+    }
+
+    mspace.seq
+  }
 }

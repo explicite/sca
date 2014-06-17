@@ -60,8 +60,8 @@ object App extends SwingApplication {
   lazy val nucleationBox: ComboBox[(String, Type)] = Constant :: Increasing :: Decreasing :: Nil
   lazy val distributionBox: ComboBox[(String, Type)] = Heterogenous :: Homogenous :: Nil
 
-  lazy val srxMenu = new GridPanel(2, 3) {
-
+  lazy val srxMenu = new GridPanel(1, 21) {
+    contents ++= nucleationBox :: distributionBox :: Nil
     border = "SRX"
   }
   lazy val mcMenu = new GridPanel(2, 3) {
@@ -92,7 +92,7 @@ object App extends SwingApplication {
   }
 
   lazy val menu = new BoxPanel(Vertical) {
-    contents ++= inclusionsMenu :: nucleationMenu :: spaceMenu :: mcMenu :: activity :: Nil
+    contents ++= inclusionsMenu :: nucleationMenu :: spaceMenu :: mcMenu :: srxMenu :: activity :: Nil
     border = "menu"
   }
 
@@ -117,13 +117,17 @@ object App extends SwingApplication {
       spaceBox.selection,
       neighbourhoodsBox.selection,
       boundariesBox.selection,
+      nucleationBox.selection,
+      distributionBox.selection,
       canvas.mouse.clicks
     )
 
     reactions += {
       case SelectionChanged(`spaceBox`) |
            SelectionChanged(`neighbourhoodsBox`) |
-           SelectionChanged(`boundariesBox`) =>
+           SelectionChanged(`boundariesBox`) |
+           SelectionChanged(`nucleationBox`) |
+           SelectionChanged(`distributionBox`) =>
 
         space = SpaceFactory(width, height)(spaceBox, neighbourhoodsBox, boundariesBox, nucleationBox, distributionBox)
       case ButtonClicked(`mcIterationsButton`) =>

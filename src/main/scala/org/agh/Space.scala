@@ -7,6 +7,8 @@ import scala.collection._
 
 // TODO functional approach eg. iterate(implicit seq)(n: seq=>seq)(b: seq=>seq): Seq
 trait Space extends Neighbourhood with Nucleation with Distribution {
+  implicit val space = this
+
   /**
    * Iteration over all cells in space
    *
@@ -88,10 +90,10 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
     nucleation.par.map {
       cell => (cell.value: @switch) match {
         case BLACK => cell
-        case _ => edge(cell) match {
-          case true => cell.applySRX(neighbours(cell) filterNot (_.recrystallized))
-          case _ => cell
-        }
+        case _ =>
+          if(edge(cell) && !cell.recrystallized)
+            cell.applySRX(neighbours(cell) filterNot (_.recrystallized))
+          else cell
       }
     }.seq
   }
