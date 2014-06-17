@@ -20,8 +20,8 @@ case class Cell(x: Int, y: Int,
     case _ => false
   }
 
-  def apply(f: (Int, Int) => Option[Color]): Cell = {
-    val value = f(x, y)
+  def apply(f: Cell => Option[Color]): Cell = {
+    val value = f(this)
 
     value match {
       case Some(color) => Cell(x, y, color)
@@ -60,6 +60,8 @@ case class Cell(x: Int, y: Int,
   def ~(c: Color): Cell = Cell(x, y, c, energy, recrystallized)
 
   def ~(b: Boolean): Cell = Cell(x, y, value, energy, b)
+
+  def ~(x: Int, y: Int): Cell = Cell(x, y, value, energy, recrystallized)
 
 }
 

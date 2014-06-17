@@ -23,7 +23,7 @@ trait Space extends Neighbourhood with Nucleation with Distribution {
 
   def onTheEdge(modify: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
     space.map {
-      case cell => edge(cell.x, cell.y) match {
+      case cell => onEdge(cell) match {
         case true => modify(cell)
         case false => cell
       }
@@ -70,7 +70,7 @@ abstract case class MCSpace(width: Int, height: Int) extends Space {
     cells.par.map {
       cell => (cell.value: @switch) match {
         case BLACK => cell
-        case _ => edge(cell) match {
+        case _ => onEdge(cell) match {
           case true => cell.applyMC(states(cell))
           case _ => cell
         }
@@ -91,7 +91,7 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
       cell => (cell.value: @switch) match {
         case BLACK => cell
         case _ =>
-          if(edge(cell) && !cell.recrystallized)
+          if(onEdge(cell) && cell.recrystallized)
             cell.applySRX(neighbours(cell) filter (_.recrystallized))
           else cell
       }

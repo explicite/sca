@@ -147,14 +147,14 @@ class SpaceTest extends FunSuite with Matchers {
 
   test("Identification cells on the edge") {
     val space = new CASpace(3, 3) with Moore with Absorbs with Constant with Homogenous
-    space.edge(0, 0)(testSpace) shouldBe true
-    space.edge(0, 1)(testSpace) shouldBe true
-    space.edge(0, 2)(testSpace) shouldBe false
-    space.edge(1, 0)(testSpace) shouldBe true
-    space.edge(1, 1)(testSpace) shouldBe true
-    space.edge(1, 2)(testSpace) shouldBe false
-    space.edge(2, 0)(testSpace) shouldBe true
-    space.edge(2, 1)(testSpace) shouldBe true
-    space.edge(2, 2)(testSpace) shouldBe false
+    space.onEdge(testSpace(0))(testSpace) shouldBe false
+    space.onEdge(testSpace(1))(testSpace) shouldBe true
+    space.onEdge(testSpace(2))(testSpace) shouldBe false
+    space.onEdge(testSpace(3))(testSpace) shouldBe true
+    space.onEdge(testSpace(4))(testSpace) shouldBe true
+    space.onEdge(testSpace(5))(testSpace) shouldBe false
+    space.onEdge(testSpace(6))(testSpace) shouldBe true
+    space.onEdge(testSpace(7))(testSpace) shouldBe true
+    space.onEdge(testSpace(8))(testSpace) shouldBe false
   }
 }

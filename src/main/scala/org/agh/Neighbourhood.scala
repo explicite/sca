@@ -10,8 +10,8 @@ abstract class Neighbourhood
 
   protected val probability: Double = 0.7d
 
-  def edge(coordinate: (Int, Int))(implicit space: Seq[Cell]): Boolean = {
-    val (x, y) = coordinate
+  def onEdge(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+    val (x, y) = (cell.x, cell.y)
     val values = (transforms _ andThen evaluate)(milieu(x, y))
     val uniqueValues = values groupBy (_.getRGB)
 
@@ -22,27 +22,25 @@ abstract class Neighbourhood
   }
 
   def edges(implicit space: Seq[Cell]): Seq[Cell] = {
-    space filter (cell => edge(cell.x, cell.y))
+    space filter (cell => onEdge(cell))
   }
 
-  protected def states(coordinate: (Int, Int))(implicit space: Seq[Cell]): Seq[Color] = {
-    val (x, y) = coordinate
-    mutate(coordinates(x, y)) map toColor
+  protected def states(cell: Cell)(implicit space: Seq[Cell]): Seq[Color] = {
+    mutate(coordinates(cell)) map toColor
   }
 
-  protected def value(x: Int, y: Int)(implicit space: Seq[Cell]): Option[Color] = {
-    (mutate _ andThen mapToColor  andThen expand)(coordinates(x, y))
+  protected def value(cell: Cell)(implicit space: Seq[Cell]): Option[Color] = {
+    (mutate _ andThen mapToColor andThen expand)(coordinates(cell))
   }
 
-  protected def coordinates(x: Int, y: Int): Seq[(Int, Int)]
+  protected def coordinates(cell: Cell): Seq[(Int, Int)]
 
   private def milieu(x: Int, y: Int): Seq[(Int, Int)] = {
     (x, y) ::(x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
   }
 
-  def neighbours(coordinate: (Int, Int))(implicit space: Seq[Cell]): Seq[Cell] = {
-    val (x, y) = coordinate
-    mutate(coordinates(x, y))
+  def neighbours(cell: Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
+    mutate(coordinates(cell))
   }
 }
 
@@ -51,50 +49,50 @@ object Neighbourhood extends Enumeration {
   import scala.reflect.runtime.universe.typeOf
 
   val VonNeumann = ("Von Neumann", typeOf[VonNeumann])
-  val NearestMoore = ("Nearest Moore", typeOf[NearestMoore])
-  val FurtherMoore = ("Further Moore", typeOf[FurtherMoore])
-  val RandomMoore = ("Random Moore", typeOf[RandomMoore])
+  val ExtendedMoore = ("Extended Moore", typeOf[ExtendedMoore])
   val Moore = ("Moore", typeOf[Moore])
   val Pentagonal = ("Pentagonal", typeOf[Pentagonal])
   val Hexagonal = ("Hexagonal", typeOf[Hexagonal])
 }
 
 trait VonNeumann extends Neighbourhood with Concavity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
     (x, y - 1) ::(x, y + 1) ::(x - 1, y) ::(x + 1, y) :: Nil
   }
 }
 
-trait NearestMoore extends Neighbourhood with Convexity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
+trait NearestMoore extends Neighbourhood with Concavity {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
     (x, y - 1) ::(x + 1, y) ::(x, y + 1) ::(x - 1, y) :: Nil
   }
 }
 
-trait FurtherMoore extends Neighbourhood with Convexity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
+trait FurtherMoore extends Neighbourhood with Concavity {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
     (x - 1, y - 1) ::(x + 1, y - 1) ::(x + 1, y + 1) ::(x - 1, y + 1) :: Nil
   }
 }
 
-trait RandomMoore extends Neighbourhood with Concavity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
-    (randomFloat: @switch) match {
-      case f: Float if f <= probability =>
-        (x, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x, y + 1) :: Nil
-      case _ => Seq.empty
-    }
+trait ExtendedMoore extends Neighbourhood with Convexity {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
+    (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
   }
 }
 
 trait Moore extends Neighbourhood with Concavity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
     (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
   }
 }
 
 trait Pentagonal extends Neighbourhood with Concavity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
     (randomCase(4): @switch) match {
       case 1 => (x - 1, y - 1) ::(x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) :: Nil
       case 2 => (x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) ::(x + 1, y + 1) :: Nil
@@ -105,7 +103,8 @@ trait Pentagonal extends Neighbourhood with Concavity {
 }
 
 trait Hexagonal extends Neighbourhood with Concavity {
-  override protected def coordinates(x: Int, y: Int): Seq[(Int, Int)] = {
+  override protected def coordinates(cell: Cell): Seq[(Int, Int)] = {
+    val (x, y) = (cell.x, cell.y)
     (randomCase(2): @switch) match {
       case 1 => (x - 1, y - 1) ::(x, y - 1) ::(x - 1, y) ::(x + 1, y) ::(x + 1, y + 1) ::(x, y + 1) :: Nil
       case 2 => (x, y - 1) ::(x + 1, y - 1) ::(x + 1, y) ::(x - 1, y) ::(x - 1, y + 1) ::(x, y + 1) :: Nil
@@ -122,7 +121,7 @@ trait Concavity extends ShapeControl {
     (cells: @switch) match {
       case head :: tail =>
         val cellsWithCount = cells map (c => (c, cells.count(_ == c)))
-        Some(cellsWithCount.sortWith(_._2 < _._2).map(ci => ci._1).head)
+        cellsWithCount.sortWith(_._2 > _._2).headOption map (_._1)
       case Nil => None
     }
   }
@@ -130,29 +129,37 @@ trait Concavity extends ShapeControl {
 
 trait Convexity extends ShapeControl {
   protected def expand(cells: Seq[Color]): Option[Color] = {
-    //TODO tail recursion
-    def evaluate(s: Int): Option[Color] = {
-      def chained(idx: Int): Boolean = {
-        def bound(idx: Int) = cells(((idx % cells.length) + cells.length) % cells.length).getRGB
-
-        if (bound(idx - 1) == bound(idx) && bound(idx - 1) == bound(idx + 1) && bound(idx) == bound(idx + 1))
-          true
-        else
-          false
-      }
-
-      if (chained(s))
-        Some(cells(s))
-      else if (s > 0)
-        evaluate(s - 1)
-      else
-        None
-    }
-
-    (cells.length: @switch) match {
-      case 3 => evaluate(2)
-      case 4 => evaluate(3)
-      case _ => None
+    //TODO
+    (cells: @switch) match {
+      case head :: tail =>
+        val cellsWithCount = cells map (c => (c, cells.count(_ == c)))
+        cellsWithCount.maxBy(_._2)._2 match {
+          case 5 | 6 | 7 | 8 => cellsWithCount.headOption map (_._1)
+          case 3 | 4 =>
+            (cells(0) :: cells(2) :: cells(5) :: cells(7) :: Nil).map {
+              c =>
+                (c, cells.count(_ == c))
+            }.maxBy(_._2) match {
+              case (color, 4) => Some(color)
+              case (color, 3) => Some(color)
+              case (color, 3) =>
+                (cells(1) :: cells(3) :: cells(4) :: cells(6) :: Nil).map {
+                  c => (c, cells.count(_ == c))
+                }.maxBy(_._2) match {
+                  case (color, 4) => Some(color)
+                  case (color, 3) => Some(color)
+                  case _ => (randomCase(2): @switch) match {
+                    case 1 => cellsWithCount.headOption map (_._1)
+                    case 2 => None
+                  }
+                }
+            }
+          case _ => (randomCase(2): @switch) match {
+            case 1 => cellsWithCount.headOption map (_._1)
+            case 2 => None
+          }
+        }
+      case Nil => None
     }
   }
 }

@@ -21,12 +21,12 @@ trait Constant extends Nucleation {
 
 trait Increasing extends Nucleation {
   def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = {
-    insert(100)
+    insert(5)
   }
 }
 
 trait Decreasing extends Nucleation {
   def nucleation(implicit cells: Seq[Cell]): Seq[Cell] = {
-    insert(100)
+    insert(5)
   }
 }
