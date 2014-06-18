@@ -4,10 +4,13 @@ import java.awt.Color._
 
 import scala.annotation._
 import scala.collection._
+import org.agh.Cell._
 
 // TODO functional approach eg. iterate(implicit seq)(n: seq=>seq)(b: seq=>seq): Seq
 trait Space extends Neighbourhood with Nucleation with Distribution {
   implicit val space = this
+
+  def apply(cell: Cell)(implicit cells: Seq[Cell], space: Space): Cell
 
   /**
    * Iteration over all cells in space
@@ -15,7 +18,7 @@ trait Space extends Neighbourhood with Nucleation with Distribution {
    * @param cells space to iterate
    * @return evaluated space
    */
-  def iterate(implicit cells: Seq[Cell]): Seq[Cell]
+  def iterate(implicit cells: Seq[Cell]): Seq[Cell] = cells.par.map(apply).seq
 
   def modify(modifier: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
     space map modifier
@@ -41,61 +44,42 @@ object Space {
 }
 
 abstract case class CASpace(width: Int, height: Int) extends Space {
-  /**
-   * Iteration over all cells in CA
-   *
-   * @param cells space to iterate
-   * @return evaluated space
-   */
-  def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-    cells.map {
-      c => (c.value: @switch) match {
-        case WHITE => c(value)
-        case _ => c
-      }
-    }
+  def apply(cell: Cell)(implicit cells: Seq[Cell], space: Space): Cell = {
+    if(space.toCA(cell))
+      cell(space.value)
+    else
+      cell
   }
 }
 
 abstract case class MCSpace(width: Int, height: Int) extends Space {
-  /**
-   * Iteration over all cells in Monte Carlo. Consider only cells on grains boundary.
-   * Selection of a new orientation only from neighbors. Cell is randomly generated from (W-k)
-   * available cells, where k is a number of cells  already considerated in currently MC step.
-   *
-   * @param cells space to iterate
-   * @return evaluated space
-   */
-  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-    cells.par.map {
-      cell => (cell.value: @switch) match {
-        case BLACK => cell
-        case _ => onEdge(cell) match {
-          case true => cell.applyMC(states(cell))
-          case _ => cell
-        }
-      }
-    }.seq
+  def apply(cell: Cell)(implicit cells: Seq[Cell], space: Space): Cell = {
+    val states = space.states(cell)
+    val allow = space.toMC(cell)
+    if (states.nonEmpty && allow) {
+      val beforeState = cell.value
+      val afterState = RANDOM.shuffle(states).head
+      val beforeEnergy = cell.energy(states, beforeState)
+      val afterEnergy = cell.energy(states, afterState)
+
+      if (afterEnergy - beforeEnergy <= 0) cell ~ afterState else cell
+
+    } else cell
   }
 }
 
 abstract case class SRXSpace(width: Int, height: Int) extends Space {
-  /**
-   * Iteration over all cells in SRX
-   *
-   * @param cells space to iterate
-   * @return evaluated space
-   */
-  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-    nucleation.par.map {
-      cell => (cell.value: @switch) match {
-        case BLACK => cell
-        case _ =>
-          if(onEdge(cell) && cell.recrystallized)
-            cell.applySRX(neighbours(cell) filter (_.recrystallized))
-          else cell
-      }
-    }.seq
+  def apply(cell: Cell)(implicit cells: Seq[Cell], space: Space): Cell = {
+    val states = space.neighbours(cell)
+    val allow = space.toSRX(cell)
+    if (states.nonEmpty && allow) {
+      val afterState = RANDOM.shuffle(states).head
+      val beforeEnergy = (cell.energy(states, cell) * 0.5) + cell.energy
+      val afterEnergy = cell.energy(states, afterState) * 0.5
+
+      if (afterEnergy - beforeEnergy <= 0) afterState ~ true else cell
+
+    } else cell
   }
 }
 

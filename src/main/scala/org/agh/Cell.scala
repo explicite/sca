@@ -3,6 +3,7 @@ package org.agh
 import java.awt.Color
 import java.awt.Color._
 
+import scala.annotation.switch
 import scala.collection.Seq
 
 case class Cell(x: Int, y: Int,
@@ -40,17 +41,6 @@ case class Cell(x: Int, y: Int,
     } else {
       this
     }
-  }
-
-  def applySRX(states: Seq[Cell]): Cell = {
-    if (states.nonEmpty) {
-      val afterState = RANDOM.shuffle(states).head
-      val beforeEnergy = (energy(states, this) * 0.5) + energy
-      val afterEnergy = energy(states, afterState) * 0.5
-
-      if (afterEnergy - beforeEnergy <= 0) afterState ~ true else this
-
-    } else this
   }
 
   def +(eng: Double): Cell = Cell(x, y, value, energy + eng, recrystallized)

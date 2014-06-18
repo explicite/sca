@@ -1,6 +1,7 @@
 package org.agh
 
 import java.awt.Color
+import java.awt.Color._
 
 import scala.annotation.switch
 
@@ -9,6 +10,18 @@ abstract class Neighbourhood
   with ShapeControl {
 
   protected val probability: Double = 0.7d
+
+  def toCA(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+    cell.value == WHITE
+  }
+
+  def toMC(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+    onEdge(cell) &&  cell.value != BLACK
+  }
+
+  def toSRX(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+    onEdge(cell) && !cell.recrystallized  && cell.value != BLACK
+  }
 
   def onEdge(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
     val (x, y) = (cell.x, cell.y)
@@ -25,11 +38,11 @@ abstract class Neighbourhood
     space filter (cell => onEdge(cell))
   }
 
-  protected def states(cell: Cell)(implicit space: Seq[Cell]): Seq[Color] = {
+  def states(cell: Cell)(implicit space: Seq[Cell]): Seq[Color] = {
     mutate(coordinates(cell)) map toColor
   }
 
-  protected def value(cell: Cell)(implicit space: Seq[Cell]): Option[Color] = {
+  def value(cell: Cell)(implicit space: Seq[Cell]): Option[Color] = {
     (mutate _ andThen mapToColor andThen expand)(coordinates(cell))
   }
 
