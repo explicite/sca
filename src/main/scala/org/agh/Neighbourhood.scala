@@ -11,16 +11,16 @@ abstract class Neighbourhood
 
   protected val probability: Double = 0.7d
 
-  def toCA(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+  def allowCa(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
     cell.value == WHITE
   }
 
-  def toMC(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+  def allowMC(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
     onEdge(cell) &&  cell.value != BLACK
   }
 
-  def toSRX(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
-    onEdge(cell) && !cell.recrystallized  && cell.value != BLACK
+  def allowSRX(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
+    onEdge(cell) && cell.value != BLACK
   }
 
   def onEdge(cell: Cell)(implicit space: Seq[Cell]): Boolean = {
@@ -36,10 +36,6 @@ abstract class Neighbourhood
 
   def edges(implicit space: Seq[Cell]): Seq[Cell] = {
     space filter (cell => onEdge(cell))
-  }
-
-  def states(cell: Cell)(implicit space: Seq[Cell]): Seq[Color] = {
-    mutate(coordinates(cell)) map toColor
   }
 
   def value(cell: Cell)(implicit space: Seq[Cell]): Option[Color] = {

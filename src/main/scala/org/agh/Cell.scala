@@ -30,22 +30,11 @@ case class Cell(x: Int, y: Int,
     }
   }
 
-  def applyMC(states: Seq[Color]): Cell = {
-    val beforeState = value
-    val afterState = RANDOM.shuffle(states).head
-    val beforeEnergy = energy(states, beforeState)
-    val afterEnergy = energy(states, afterState)
-
-    if (afterEnergy - beforeEnergy <= 0) {
-      Cell(x, y, afterState)
-    } else {
-      this
-    }
-  }
-
   def +(eng: Double): Cell = Cell(x, y, value, energy + eng, recrystallized)
 
   def -(eng: Double): Cell = Cell(x, y, value, energy - eng, recrystallized)
+
+  def ~(eng: Double): Cell = Cell(x, y, value, eng, recrystallized)
 
   def ~(c: Color): Cell = Cell(x, y, c, energy, recrystallized)
 
@@ -70,7 +59,6 @@ trait Energy {
   }
 
   def energy(s: Seq[Cell], c: Cell): Double = {
-    val state = s.filterNot(_.recrystallized).map(_.value)
-    energy(state, c)
+    energy(s.map(_.value), c)
   }
 }

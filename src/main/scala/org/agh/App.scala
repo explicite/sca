@@ -20,9 +20,9 @@ import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 
 object App extends SwingApplication {
-  val width = 700
-  val height = 700
-  val cellSize = 1
+  val width = 100
+  val height = 100
+  val cellSize = 5
   implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Constant, Homogenous)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
@@ -57,7 +57,7 @@ object App extends SwingApplication {
   lazy val neighbourhoodsBox: ComboBox[(String, Type)] = VonNeumann :: ExtendedMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
   lazy val boundariesBox: ComboBox[(String, Type)] = Absorbs :: Periodic :: Nil
   lazy val spaceBox: ComboBox[(String, Type)] = CA :: MC :: SPX :: Nil
-  lazy val nucleationBox: ComboBox[(String, Type)] = Constant :: Increasing :: Decreasing :: Nil
+  lazy val nucleationBox: ComboBox[(String, Type)] = Lack :: Constant :: Increasing :: Decreasing :: Nil
   lazy val distributionBox: ComboBox[(String, Type)] = Heterogenous :: Homogenous :: Nil
 
   lazy val srxMenu = new GridPanel(1, 21) {
