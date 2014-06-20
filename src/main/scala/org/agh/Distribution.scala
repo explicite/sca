@@ -1,14 +1,21 @@
 package org.agh
 
 trait Distribution {
-  val probabilityForEdge :Double
+  val probabilityForEdge: Double
   val probabilityForGrain: Double
-  
-  def insertGerm(n: Int)(implicit cells: Seq[Cell]): Seq[Cell]  =  {
+
+  def insertGerm(n: Int)(implicit cells: Seq[Cell]): Seq[Cell] = {
     update(inEdge(n * probabilityForEdge) ++ inGrain(n * probabilityForGrain))
   }
-  
-  def insertEnergy(e: Double)(implicit cells: Seq[Cell]): Seq[Cell] = ???
+
+  def insertEnergy(e: Double)(implicit cells: Seq[Cell]): Seq[Cell] = {
+    cells.par.map { cell =>
+      if (onEdge(cell))
+        cell ~ randomDouble(1)
+      else
+        cell ~ randomDouble(4)
+    }.seq
+  }
 
   def inEdge(n: Double)(implicit cells: Seq[Cell]): Seq[Cell] = {
     var grains: Seq[Cell] = Seq.empty
@@ -16,10 +23,10 @@ trait Distribution {
     while (grains.size < n) {
       val cell = randomCell
       if (onEdge(cell))
-        grains ++= (cell ~ true ~ randomColor ~ 0)  :: Nil
+        grains ++= (cell ~ true ~ randomColor ~ 0) :: Nil
     }
 
-    grains.seq
+    grains
   }
 
   def inGrain(n: Double)(implicit cells: Seq[Cell]): Seq[Cell] = {
@@ -29,7 +36,7 @@ trait Distribution {
       if (!onEdge(cell))
         grains ++= (cell ~ true ~ randomColor ~ 0) :: Nil
     }
-    grains.seq
+    grains
   }
 
   def onEdge(cell: Cell)(implicit space: Seq[Cell]): Boolean
@@ -44,11 +51,11 @@ object Distribution {
 }
 
 trait Homogenous extends Distribution {
-  val probabilityForEdge :Double = 0.5
+  val probabilityForEdge: Double = 0.5
   val probabilityForGrain: Double = 0.5
 }
 
 trait Heterogenous extends Distribution {
-  val probabilityForEdge :Double = 0.75
+  val probabilityForEdge: Double = 0.75
   val probabilityForGrain: Double = 0.25
 }

@@ -14,7 +14,9 @@ trait Space extends Neighbourhood with Nucleation with Distribution {
    * @param cells space to iterate
    * @return evaluated space
    */
-  def iterate(implicit cells: Seq[Cell]): Seq[Cell] = cells.par.map(apply).seq
+  def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
+    nucleation.par.map(apply).seq
+  }
 
   def modify(modifier: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
     space map modifier
@@ -74,15 +76,17 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
         val beforeEnergy = (cell.energy(states, cell) * 0.5) + cell.energy
         val afterEnergy = cell.energy(states, afterState) * 0.5
 
-        if (afterEnergy <=  beforeEnergy) cell ~ afterState ~ true ~ 0 else cell
+        if (afterEnergy <= beforeEnergy) cell ~ afterState ~ true ~ 0 else cell
 
       } else cell
     } else cell
   }
 
-  // TODO add implicit iteration context
   override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-      nucleation.par.map(apply).seq
+    val cellsWithNucleation = nucleation
+    cellsWithNucleation.par.map {
+      cell => apply(cell)(cellsWithNucleation)
+    }.seq
   }
 }
 

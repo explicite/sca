@@ -20,10 +20,10 @@ import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 
 object App extends SwingApplication {
-  val width = 100
-  val height = 100
-  val cellSize = 5
-  implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Constant, Homogenous)
+  val width = 500
+  val height = 500
+  val cellSize = 1
+  implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Lack, Heterogenous)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
 
@@ -132,12 +132,12 @@ object App extends SwingApplication {
         space = SpaceFactory(width, height)(spaceBox, neighbourhoodsBox, boundariesBox, nucleationBox, distributionBox)
       case ButtonClicked(`mcIterationsButton`) =>
         Future {
-          canvas.iterate(mcIterationsField)
+          canvas.iterate(space, Context(mcIterationsField))
         }
       case ButtonClicked(`mcInitializeButton`) =>
         canvas.generate(mcInitializeField)
       case ButtonClicked(`iterate`) =>
-        canvas.iterate(1)
+        canvas.iterate
       case ButtonClicked(`edges`) =>
         canvas.onTheEdge((c: Cell) => Cell(c.x, c.y))
       case ButtonClicked(`active`) =>

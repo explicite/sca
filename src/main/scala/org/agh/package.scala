@@ -49,6 +49,8 @@ package object agh {
 
   def randomFloat = RANDOM.nextFloat()
 
+  def randomDouble = (max: Double) => RANDOM.nextDouble() * max
+
   def randomInt = (max: Int) => RANDOM.nextInt(max)
 
   def randomCell(implicit cells: Seq[Cell]) = RANDOM.shuffle(cells).head
@@ -69,13 +71,12 @@ package object agh {
     space(index) = cell
   }
 
-  def update(cells: Seq[Cell])(implicit space: Seq[Cell]): Seq[Cell] ={
-    val mspace = scala.collection.mutable.Seq[Cell](space:_*)
-
-    cells.foreach{
+  def update(cells: Seq[Cell])(implicit space: Seq[Cell]): Seq[Cell] = {
+    val mspace = scala.collection.mutable.Seq[Cell](space.seq: _*)
+    cells.par.foreach {
       cell => swap(cell)(mspace)
     }
 
-    mspace.seq
+    mspace
   }
 }

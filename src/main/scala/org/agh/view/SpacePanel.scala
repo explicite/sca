@@ -41,13 +41,13 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     }
   }
 
-  def iterate(ni: Int = 0)(implicit space: Space) {
-    if (ni == 0)
+  def iterate(implicit space: Space, context: Context = Context(1)) {
+    if (context.end)
       println("END")
     else {
       cells = space.iterate
       repaint()
-      iterate(ni - 1)
+      iterate(space, context ++)
     }
   }
 
