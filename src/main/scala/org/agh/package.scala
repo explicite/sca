@@ -1,13 +1,12 @@
 package org
 
-import java.awt.Color
 import java.awt.Color._
 import javax.swing.BorderFactory
 import javax.swing.border.CompoundBorder
 
 import scala.language.implicitConversions
 import scala.swing.ListView.Renderer
-import scala.swing.{Alignment, Button, ComboBox, Label, TextField}
+import scala.swing._
 
 package object agh {
 
@@ -18,7 +17,9 @@ package object agh {
 
   implicit def TextFieldLabelDouble(f: TextField): Double = f.text.toDouble
 
-  implicit def IntLabelTextField(i: Int): TextField = textField(i)
+  implicit def IntLabelTextField(i: Int): TextField = IntToTextField(i)
+
+  implicit def DoubleLabelTextField(d: Double): TextField = DoubleToTextField(d)
 
   implicit def TextFieldToInt(tf: TextField): Int = tf.text.toInt
 
@@ -60,23 +61,29 @@ package object agh {
   def randomColor = getHSBColor(randomFloat, 1f, 1f)
 
   // view helpers
-  def textField(d: Double) = new TextField {
+  def DoubleToTextField(d: Double = 0.0) = new TextField {
     text = d.toString
     columns = 5
     horizontalAlignment = Alignment.Left
   }
 
-  def swap(cell: Cell)(space: scala.collection.mutable.Seq[Cell]) = {
+  def IntToTextField(n: Int = 0) = new TextField {
+    text = n.toString
+    columns = 5
+    horizontalAlignment = Alignment.Left
+  }
+
+  def swap(cell: Cell)(space: scala.collection.parallel.mutable.ParArray[Cell]) = {
     val index = space.indexWhere(c => cell.x == c.x && cell.y == c.y)
     space(index) = cell
   }
 
   def update(cells: Seq[Cell])(implicit space: Seq[Cell]): Seq[Cell] = {
-    val mspace = scala.collection.mutable.Seq[Cell](space.seq: _*)
+    val mspace = scala.collection.parallel.mutable.ParArray[Cell](space: _*)
     cells.par.foreach {
       cell => swap(cell)(mspace)
     }
 
-    mspace
+    mspace.seq
   }
 }

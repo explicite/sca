@@ -3,18 +3,19 @@ package org.agh
 import java.awt.Color
 import java.awt.Color._
 
-import scala.annotation.switch
 import scala.collection.Seq
 
 case class Cell(x: Int, y: Int,
                 value: Color,
-                energy: Double = 0,
+                energy: Double = 5,
                 recrystallized: Boolean = false) extends Energy {
 
   val active = value match {
     case BLACK => false
     case _ => true
   }
+
+  val notRecrystallized = !recrystallized
 
   val permanent = value match {
     case BLACK | WHITE => true

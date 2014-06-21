@@ -20,9 +20,9 @@ import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 
 object App extends SwingApplication {
-  val width = 500
-  val height = 500
-  val cellSize = 1
+  val width = 200
+  val height = 200
+  val cellSize = 3
   implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Lack, Heterogenous)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
@@ -34,7 +34,7 @@ object App extends SwingApplication {
   lazy val active: Button = "remove active"
   lazy val inactive: Button = "remove inactive"
 
-  lazy val nucleationButton: Button = "apply"
+  lazy val seedingButton: Button = "apply"
 
   lazy val circleInclusionsButton: Button = "apply"
   lazy val circleInclusionsField: TextField = 0
@@ -44,29 +44,45 @@ object App extends SwingApplication {
   lazy val rectInclusionsField: TextField = 0
   lazy val rectInclusionsLabel: Label = "rect"
 
+  lazy val seedingField: TextField = 0
+  lazy val seedingLabel: Label = "seeds"
+
   lazy val nucleationField: TextField = 0
-  lazy val nucleationLabel: Label = "seeds"
+  lazy val nucleationLabel: Label = "germs"
+  lazy val nucleationGrainsField: TextField = 0.0
+  lazy val nucleationGrainsLabel: Label = "grains"
+  lazy val nucleationEdgeField: TextField = 0.0
+  lazy val nucleationEdgeLabel: Label = "edges"
 
   lazy val mcInitializeButton: Button = "apply"
   lazy val mcInitializeField: TextField = 0
   lazy val mcInitializeLabel: Label = "states"
   lazy val mcIterationsButton: Button = "apply"
-  lazy val mcIterationsField: TextField = 0
+  lazy val iterationsField: TextField = 0
   lazy val mcIterationsLabel: Label = "iterations"
 
   lazy val neighbourhoodsBox: ComboBox[(String, Type)] = VonNeumann :: ExtendedMoore :: Moore :: Pentagonal :: Hexagonal :: Nil
   lazy val boundariesBox: ComboBox[(String, Type)] = Absorbs :: Periodic :: Nil
   lazy val spaceBox: ComboBox[(String, Type)] = CA :: MC :: SPX :: Nil
-  lazy val nucleationBox: ComboBox[(String, Type)] = Lack :: Constant :: Increasing :: Decreasing :: Nil
+  lazy val nucleationBox: ComboBox[(String, Type)] = Lack :: Constant :: Increasing :: Decreasing :: OnTheBeginning :: Nil
   lazy val distributionBox: ComboBox[(String, Type)] = Heterogenous :: Homogenous :: Nil
+  lazy val visualisationBox: ComboBox[(String, Boolean)] = ("Value", false) ::("Energy", true) :: Nil
 
-  lazy val srxMenu = new GridPanel(1, 21) {
-    contents ++= nucleationBox :: distributionBox :: Nil
+  lazy val srxMenu = new GridPanel(1, 3) {
+    contents ++= nucleationBox :: distributionBox :: visualisationBox :: Nil
     border = "SRX"
   }
+
+  lazy val nucleationMenu = new GridPanel(3, 2) {
+    contents ++= nucleationField :: nucleationLabel ::
+      nucleationGrainsField :: nucleationGrainsLabel ::
+      nucleationEdgeField :: nucleationEdgeLabel :: Nil
+    border = "nucleation"
+  }
+
   lazy val mcMenu = new GridPanel(2, 3) {
     contents ++= mcInitializeField :: mcInitializeLabel :: mcInitializeButton ::
-      mcIterationsField :: mcIterationsLabel :: mcIterationsButton :: Nil
+      iterationsField :: mcIterationsLabel :: mcIterationsButton :: Nil
     border = "MC"
   }
 
@@ -81,9 +97,9 @@ object App extends SwingApplication {
     border = "inclusions"
   }
 
-  lazy val nucleationMenu = new GridPanel(1, 3) {
-    contents ++= nucleationField :: nucleationLabel :: nucleationButton :: Nil
-    border = "nucleation"
+  lazy val seedingMenu = new GridPanel(1, 3) {
+    contents ++= seedingField :: seedingLabel :: seedingButton :: Nil
+    border = "seeding"
   }
 
   lazy val activity = new GridPanel(2, 2) {
@@ -92,7 +108,14 @@ object App extends SwingApplication {
   }
 
   lazy val menu = new BoxPanel(Vertical) {
-    contents ++= inclusionsMenu :: nucleationMenu :: spaceMenu :: mcMenu :: srxMenu :: activity :: Nil
+    contents ++=
+      inclusionsMenu ::
+        seedingMenu ::
+        spaceMenu ::
+        mcMenu ::
+        srxMenu ::
+        nucleationMenu ::
+        activity :: Nil
     border = "menu"
   }
 
@@ -111,7 +134,7 @@ object App extends SwingApplication {
       inactive,
       circleInclusionsButton,
       rectInclusionsButton,
-      nucleationButton,
+      seedingButton,
       mcInitializeButton,
       mcIterationsButton,
       spaceBox.selection,
@@ -119,6 +142,7 @@ object App extends SwingApplication {
       boundariesBox.selection,
       nucleationBox.selection,
       distributionBox.selection,
+      visualisationBox.selection,
       canvas.mouse.clicks
     )
 
@@ -130,14 +154,32 @@ object App extends SwingApplication {
            SelectionChanged(`distributionBox`) =>
 
         space = SpaceFactory(width, height)(spaceBox, neighbourhoodsBox, boundariesBox, nucleationBox, distributionBox)
+      case SelectionChanged(`visualisationBox`) =>
+        canvas.repaint(visualisationBox)
       case ButtonClicked(`mcIterationsButton`) =>
         Future {
-          canvas.iterate(space, Context(mcIterationsField))
+          canvas.iterate(visualisationBox)(
+            space,
+            NucleationContext(
+              numberOfIterations = iterationsField,
+              nucleation = nucleationField,
+              edge = nucleationEdgeField,
+              grain = nucleationGrainsField
+            )
+          )
         }
       case ButtonClicked(`mcInitializeButton`) =>
         canvas.generate(mcInitializeField)
       case ButtonClicked(`iterate`) =>
-        canvas.iterate
+        canvas.iterate(visualisationBox)(
+          space,
+          NucleationContext(
+            numberOfIterations = 1,
+            nucleation = nucleationField,
+            edge = nucleationEdgeField,
+            grain = nucleationGrainsField
+          )
+        )
       case ButtonClicked(`edges`) =>
         canvas.onTheEdge((c: Cell) => Cell(c.x, c.y))
       case ButtonClicked(`active`) =>
@@ -148,8 +190,8 @@ object App extends SwingApplication {
         canvas.setCircleInclusions(circleInclusionsField)
       case ButtonClicked(`rectInclusionsButton`) =>
         canvas.setRectInclusions(rectInclusionsField)
-      case ButtonClicked(`nucleationButton`) =>
-        canvas.setNucleation(nucleationField)
+      case ButtonClicked(`seedingButton`) =>
+        canvas.setNucleation(seedingField)
       case e: MouseClicked => e.peer.getButton match {
         case LeftButton => e.modifiers match {
           case Control => canvas.selectGrain(e)

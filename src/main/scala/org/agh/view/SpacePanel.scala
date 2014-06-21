@@ -18,6 +18,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
   with Inclusions {
 
   implicit var cells: Seq[Cell] = empty()
+  var paintEnergy = false
 
   override lazy val peer = new JComponent {
     setPreferredSize(new Dimension(width * cellSize, height * cellSize))
@@ -26,7 +27,10 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       var i = 0
       while (i < cells.length) {
         val c = cells(i)
-        g.setColor(c)
+        if (paintEnergy)
+          g.setColor(if(c.energy == 0) BLUE else RED)
+        else
+          g.setColor(c)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
         i += 1
       }
@@ -41,13 +45,19 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     }
   }
 
-  def iterate(implicit space: Space, context: Context = Context(1)) {
+  def repaint(energy: Boolean): Unit = {
+    paintEnergy = energy
+    repaint()
+  }
+
+  def iterate(energy: Boolean = false)(implicit space: Space, context: NucleationContext) {
     if (context.end)
       println("END")
     else {
       cells = space.iterate
+      paintEnergy = energy
       repaint()
-      iterate(space, context ++)
+      iterate(energy)(space, context ++)
     }
   }
 

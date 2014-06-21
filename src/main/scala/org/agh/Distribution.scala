@@ -1,41 +1,46 @@
 package org.agh
 
 trait Distribution {
-  val probabilityForEdge: Double
-  val probabilityForGrain: Double
-
-  def insertGerm(n: Int)(implicit cells: Seq[Cell]): Seq[Cell] = {
-    update(inEdge(n * probabilityForEdge) ++ inGrain(n * probabilityForGrain))
+  def insertGerm(n: Int)(implicit cells: Seq[Cell], context: NucleationContext): Seq[Cell] = {
+    //TODO dynamic calculate NOG
+    val probabilityForEdge = context.edge
+    val probabilityForGrain = context.grain
+    update(inEdge((n * probabilityForEdge).toInt) ++ inGrain((n * probabilityForGrain).toInt))
   }
 
-  def insertEnergy(e: Double)(implicit cells: Seq[Cell]): Seq[Cell] = {
-    cells.par.map { cell =>
-      if (onEdge(cell))
-        cell ~ randomDouble(1)
-      else
-        cell ~ randomDouble(4)
-    }.seq
-  }
-
-  def inEdge(n: Double)(implicit cells: Seq[Cell]): Seq[Cell] = {
+  def inEdge(n: Int)(implicit cells: Seq[Cell]): Seq[Cell] = {
     var grains: Seq[Cell] = Seq.empty
+    val notRecrystallized = cells.filterNot(_.recrystallized)
 
-    while (grains.size < n) {
-      val cell = randomCell
-      if (onEdge(cell))
-        grains ++= (cell ~ true ~ randomColor ~ 0) :: Nil
+    if (notRecrystallized.nonEmpty) {
+      var itr = 0
+      while (itr < n) {
+        val cell = randomCell(notRecrystallized)
+        if (onEdge(cell)) {
+          grains ++= (cell ~ true ~ randomColor ~ 0) :: Nil
+          itr += 1
+        }
+      }
     }
 
     grains
   }
 
-  def inGrain(n: Double)(implicit cells: Seq[Cell]): Seq[Cell] = {
+  def inGrain(n: Int)(implicit cells: Seq[Cell]): Seq[Cell] = {
     var grains: Seq[Cell] = Seq.empty
-    while (grains.size < n) {
-      val cell = randomCell
-      if (!onEdge(cell))
-        grains ++= (cell ~ true ~ randomColor ~ 0) :: Nil
+    val notRecrystallized = cells.filterNot(_.recrystallized)
+
+    if (notRecrystallized.size > cells.size * 0.05) {
+      var itr = 0
+      while (itr < n) {
+        val cell = randomCell(notRecrystallized)
+        if (!onEdge(cell)) {
+          grains ++= (cell ~ true ~ randomColor ~ 0) :: Nil
+          itr += 1
+        }
+      }
     }
+
     grains
   }
 
@@ -51,11 +56,9 @@ object Distribution {
 }
 
 trait Homogenous extends Distribution {
-  val probabilityForEdge: Double = 0.5
-  val probabilityForGrain: Double = 0.5
+  override def insertGerm(n: Int)(implicit cells: Seq[Cell], context: NucleationContext): Seq[Cell] = {
+    update(inEdge((n * 0.5).toInt) ++ inGrain((n * 0.5).toInt))
+  }
 }
 
-trait Heterogenous extends Distribution {
-  val probabilityForEdge: Double = 0.75
-  val probabilityForGrain: Double = 0.25
-}
+trait Heterogenous extends Distribution

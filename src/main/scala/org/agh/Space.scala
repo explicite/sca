@@ -8,14 +8,19 @@ trait Space extends Neighbourhood with Nucleation with Distribution {
 
   def apply(cell: Cell)(implicit cells: Seq[Cell]): Cell
 
+  def allow(cell: Cell)(implicit space: Seq[Cell]): Boolean
+
   /**
    * Iteration over all cells in space
    *
    * @param cells space to iterate
    * @return evaluated space
    */
-  def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
-    nucleation.par.map(apply).seq
+  def iterate(implicit cells: Seq[Cell], context: NucleationContext = NucleationContext.One): Seq[Cell] = {
+    nucleation.par.map{
+      cell =>
+        if(allow(cell)) apply(cell) else cell
+    }.seq
   }
 
   def modify(modifier: Cell => Cell)(implicit space: Seq[Cell]): Seq[Cell] = {
@@ -42,50 +47,49 @@ object Space {
 }
 
 abstract case class CASpace(width: Int, height: Int) extends Space {
+  def allow(cell: Cell)(implicit space: Seq[Cell]): Boolean = allowCa(cell)
+
   def apply(cell: Cell)(implicit cells: Seq[Cell]): Cell = {
-    if (allowCa(cell))
-      cell(value)
-    else
-      cell
+    cell(value)
   }
 }
 
 abstract case class MCSpace(width: Int, height: Int) extends Space {
+  def allow(cell: Cell)(implicit space: Seq[Cell]): Boolean = allowMC(cell)
+
   def apply(cell: Cell)(implicit cells: Seq[Cell]): Cell = {
-    if (allowMC(cell)) {
-      val states = neighbours(cell).map(_.value)
-      if (states.nonEmpty) {
-        val beforeState = cell.value
-        val afterState = RANDOM.shuffle(states).head
-        val beforeEnergy = cell.energy(states, beforeState)
-        val afterEnergy = cell.energy(states, afterState)
+    val states = neighbours(cell).map(_.value)
+    if (states.nonEmpty) {
+      val beforeState = cell.value
+      val afterState = RANDOM.shuffle(states).head
+      val beforeEnergy = cell.energy(states, beforeState)
+      val afterEnergy = cell.energy(states, afterState)
 
-        if (afterEnergy - beforeEnergy <= 0) cell ~ afterState else cell
+      if (afterEnergy - beforeEnergy <= 0) cell ~ afterState else cell
 
-      } else cell
     } else cell
   }
 }
 
 abstract case class SRXSpace(width: Int, height: Int) extends Space {
+  def allow(cell: Cell)(implicit space: Seq[Cell]): Boolean = allowSRX(cell)
+
   def apply(cell: Cell)(implicit cells: Seq[Cell]): Cell = {
-    if (allowSRX(cell)) {
-      val states = neighbours(cell).filter(_.recrystallized).map(_.value)
-      if (states.nonEmpty) {
-        val afterState = RANDOM.shuffle(states).head
-        val beforeEnergy = (cell.energy(states, cell) * 0.5) + cell.energy
-        val afterEnergy = cell.energy(states, afterState) * 0.5
+    val states = neighbours(cell).filter(_.recrystallized).map(_.value)
+    if (states.nonEmpty) {
+      val afterState = RANDOM.shuffle(states).head
+      val beforeEnergy = (cell.energy(states, cell) * 0.5) + cell.energy
+      val afterEnergy = cell.energy(states, afterState) * 0.5
 
-        if (afterEnergy <= beforeEnergy) cell ~ afterState ~ true ~ 0 else cell
+      if (afterEnergy <= beforeEnergy) cell ~ afterState ~ true ~ 0 else cell
 
-      } else cell
     } else cell
   }
 
-  override def iterate(implicit cells: Seq[Cell]): Seq[Cell] = {
+  override def iterate(implicit cells: Seq[Cell], context: NucleationContext = NucleationContext.One): Seq[Cell] = {
     val cellsWithNucleation = nucleation
     cellsWithNucleation.par.map {
-      cell => apply(cell)(cellsWithNucleation)
+      cell => if(allow(cell)) apply(cell)(cellsWithNucleation) else cell
     }.seq
   }
 }
