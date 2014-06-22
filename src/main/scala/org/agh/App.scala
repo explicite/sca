@@ -20,9 +20,9 @@ import scala.swing.event.{ButtonClicked, MouseClicked, SelectionChanged}
 
 
 object App extends SwingApplication {
-  val width = 200
-  val height = 200
-  val cellSize = 3
+  val width = 400
+  val height = 400
+  val cellSize = 1
   implicit var space: Space = SpaceFactory(width, height)(CA, VonNeumann, Absorbs, Lack, Heterogenous)
 
   lazy val canvas = new SpacePanel(width, height, cellSize)
@@ -44,21 +44,21 @@ object App extends SwingApplication {
   lazy val rectInclusionsField: TextField = 0
   lazy val rectInclusionsLabel: Label = "rect"
 
-  lazy val seedingField: TextField = 0
+  lazy val seedingField: TextField = 20
   lazy val seedingLabel: Label = "seeds"
 
-  lazy val nucleationField: TextField = 0
+  lazy val nucleationField: TextField = 5
   lazy val nucleationLabel: Label = "germs"
-  lazy val nucleationGrainsField: TextField = 0.0
+  lazy val nucleationGrainsField: TextField = 0.5
   lazy val nucleationGrainsLabel: Label = "grains"
-  lazy val nucleationEdgeField: TextField = 0.0
+  lazy val nucleationEdgeField: TextField = 0.5
   lazy val nucleationEdgeLabel: Label = "edges"
 
   lazy val mcInitializeButton: Button = "apply"
   lazy val mcInitializeField: TextField = 0
   lazy val mcInitializeLabel: Label = "states"
   lazy val mcIterationsButton: Button = "apply"
-  lazy val iterationsField: TextField = 0
+  lazy val iterationsField: TextField = 200
   lazy val mcIterationsLabel: Label = "iterations"
 
   lazy val neighbourhoodsBox: ComboBox[(String, Type)] = VonNeumann :: ExtendedMoore :: Moore :: Pentagonal :: Hexagonal :: Nil

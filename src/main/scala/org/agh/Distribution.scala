@@ -1,14 +1,14 @@
 package org.agh
 
 trait Distribution {
+  def insertEnergy(cells: Seq[Cell]): Seq[Cell]
+
   def insertGerm(n: Int)(implicit cells: Seq[Cell], context: NucleationContext): Seq[Cell] = {
-    //TODO dynamic calculate NOG
-    val probabilityForEdge = context.edge
-    val probabilityForGrain = context.grain
-    update(inEdge((n * probabilityForEdge).toInt) ++ inGrain((n * probabilityForGrain).toInt))
+    val withEnergy = insertEnergy(cells)
+    update(inEdge((n * context.edge).toInt) ++ inGrain((n * context.grain).toInt))(withEnergy)
   }
 
-  def inEdge(n: Int)(implicit cells: Seq[Cell]): Seq[Cell] = {
+   def inEdge(n: Int)(implicit cells: Seq[Cell]): Seq[Cell] = {
     var grains: Seq[Cell] = Seq.empty
     val notRecrystallized = cells.filterNot(_.recrystallized)
 
@@ -55,10 +55,27 @@ object Distribution {
   val Heterogenous = ("Heterogenous", typeOf[Heterogenous])
 }
 
-trait Homogenous extends Distribution {
-  override def insertGerm(n: Int)(implicit cells: Seq[Cell], context: NucleationContext): Seq[Cell] = {
-    update(inEdge((n * 0.5).toInt) ++ inGrain((n * 0.5).toInt))
+trait Homogenous extends Distribution   {
+  def insertEnergy(cells: Seq[Cell]): Seq[Cell] = {
+    cells.par.map {
+      cell =>
+        if(!cell.recrystallized) {
+          cell ~ 0
+        } else cell
+    }.seq
   }
 }
 
-trait Heterogenous extends Distribution
+
+trait Heterogenous extends Distribution  {
+  def insertEnergy(cells: Seq[Cell]): Seq[Cell] = {
+    cells.par.map {
+      cell =>
+        if(!cell.recrystallized) {
+          if (onEdge(cell)(cells)) {
+            cell ~ randomDouble(5)
+          } else cell ~ -randomDouble(10)
+        } else cell
+    }.seq
+  }
+}

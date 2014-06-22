@@ -78,8 +78,8 @@ abstract case class SRXSpace(width: Int, height: Int) extends Space {
     val states = neighbours(cell).filter(_.recrystallized).map(_.value)
     if (states.nonEmpty) {
       val afterState = RANDOM.shuffle(states).head
-      val beforeEnergy = (cell.energy(states, cell) * 0.5) + cell.energy
-      val afterEnergy = cell.energy(states, afterState) * 0.5
+      val beforeEnergy = (cell.energy(states, cell)*0.5) + cell.energy
+      val afterEnergy = cell.energy(states, afterState) *0.5
 
       if (afterEnergy <= beforeEnergy) cell ~ afterState ~ true ~ 0 else cell
 

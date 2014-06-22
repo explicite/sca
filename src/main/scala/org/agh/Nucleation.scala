@@ -33,7 +33,7 @@ trait Increasing extends Nucleation {
 
 trait Decreasing extends Nucleation {
   def numberOfGerms(implicit context: NucleationContext): Int = {
-     context.increasing
+     context.decreasing
   }
 }
 

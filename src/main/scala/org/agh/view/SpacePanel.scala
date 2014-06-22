@@ -28,7 +28,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       while (i < cells.length) {
         val c = cells(i)
         if (paintEnergy)
-          g.setColor(if(c.energy == 0) BLUE else RED)
+          g.setColor(if(c.energy <= 0) BLUE else RED) // TODO create colors for energy level
         else
           g.setColor(c)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)
@@ -57,6 +57,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       cells = space.iterate
       paintEnergy = energy
       repaint()
+      println(s"${context.current} iteration from ${context.numberOfIterations}")
       iterate(energy)(space, context ++)
     }
   }
@@ -83,7 +84,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       cell =>
         cell.value match {
           case BLACK => cell
-          case _ => Cell(cell.x, cell.y)
+          case _ => Cell(cell.x, cell.y, WHITE, 4, recrystallized = false)
         }
     }
 
@@ -94,7 +95,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
     cells = cells.map {
       cell =>
         cell.value match {
-          case BLACK => Cell(cell.x, cell.y)
+          case BLACK => Cell(cell.x, cell.y, WHITE, 4, recrystallized = false)
           case _ => cell
         }
     }

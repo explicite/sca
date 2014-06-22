@@ -7,7 +7,7 @@ import scala.collection.Seq
 
 case class Cell(x: Int, y: Int,
                 value: Color,
-                energy: Double = 5,
+                energy: Double = 4,
                 recrystallized: Boolean = false) extends Energy {
 
   val active = value match {
