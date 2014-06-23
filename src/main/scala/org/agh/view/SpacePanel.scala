@@ -28,7 +28,7 @@ class SpacePanel(val width: Int, val height: Int, cellSize: Int)
       while (i < cells.length) {
         val c = cells(i)
         if (paintEnergy)
-          g.setColor(if(c.energy <= 0) BLUE else RED) // TODO create colors for energy level
+          g.setColor(if (c.recrystallized) BLUE else if (c.energy >= 0) GREEN else RED)
         else
           g.setColor(c)
         g.fillRect(c.x * cellSize, c.y * cellSize, cellSize, cellSize)

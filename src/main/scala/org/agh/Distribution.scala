@@ -74,7 +74,7 @@ trait Heterogenous extends Distribution  {
         if(!cell.recrystallized) {
           if (onEdge(cell)(cells)) {
             cell ~ randomDouble(5)
-          } else cell ~ -randomDouble(10)
+          } else cell ~ -randomDouble(5)
         } else cell
     }.seq
   }
